@@ -4,12 +4,38 @@ import json
 import logging
 import os
 import socket
+from dataclasses import dataclass
 from typing import List, Dict, Optional, Any
 from pathlib import Path
 import httpx
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class LookupHint:
+    """Input to Registry.lookup() — supply whatever you have; lookup fills in the rest."""
+    ip: Optional[str] = None
+    hostname: Optional[str] = None  # pre-resolved (OS cache or reverse DNS)
+    process_name: Optional[str] = None
+
+
+@dataclass
+class MatchResult:
+    """Result of Registry.lookup().
+
+    is_match is always set; entry, confidence, and match_method are meaningful
+    only when is_match is True.
+    """
+    is_match: bool
+    entry: Optional["RegistryEntry"] = None
+    confidence: float = 0.0
+    match_method: str = "none"
+
+    @classmethod
+    def no_match(cls) -> "MatchResult":
+        return cls(is_match=False)
 
 
 class RegistryEntry:
@@ -88,12 +114,50 @@ class Registry:
         self._ip_to_entry: Dict[str, RegistryEntry] = {}  # ip -> entry
         self._load_registry(registry_path)
 
-    def preload_dns(self) -> None:
-        """Resolve all registry domains to IPs at startup.
-        
+    def lookup(self, hint: LookupHint) -> MatchResult:
+        """Unified tool lookup from any available hint.
+
+        Resolution waterfall (highest confidence first):
+          1. Hostname match — exact or subdomain (from OS cache or reverse DNS)
+          2. Preloaded IP map — unambiguous dedicated IPs only
+
+        DNS resolution is the caller's responsibility; supply pre-resolved
+        hostnames via hint.hostname. The IP map covers dedicated IPs that
+        don't need DNS at all.
+        """
+        # Phase 1: Hostname match (OS-cache hostname is very accurate for CDNs)
+        if hint.hostname:
+            entry = self.find_match(hint.hostname)
+            if entry:
+                return MatchResult(
+                    is_match=True,
+                    entry=entry,
+                    confidence=0.95,
+                    match_method="hostname",
+                )
+
+        # Phase 2: Preloaded IP map (dedicated IPs — high confidence)
+        if hint.ip:
+            entry = self._ip_to_entry.get(hint.ip)
+            if entry:
+                return MatchResult(
+                    is_match=True,
+                    entry=entry,
+                    confidence=1.0,
+                    match_method="ip_map",
+                )
+
+        return MatchResult.no_match()
+
+    def warm_cache(self) -> None:
+        """Resolve all registry domains to IPs and build the fast IP lookup map.
+
         IPs claimed by more than one tool (shared CDN IPs like Cloudflare)
-        are marked ambiguous and excluded from the IP map so they fall
-        through to the DNS-cache / reverse-DNS phase instead.
+        are excluded from the map so they fall through to the DNS-cache /
+        reverse-DNS phase instead.
+
+        Call this explicitly after construction rather than in __init__ so
+        the blocking network I/O happens at a predictable time.
         """
         ip_claimants: dict = {}  # ip -> list of entries that resolve to it
 
@@ -121,8 +185,11 @@ class Registry:
             f"({ambiguous} shared CDN IPs excluded from IP map)"
         )
 
+    def preload_dns(self) -> None:
+        """Deprecated alias for warm_cache(). Use warm_cache() instead."""
+        self.warm_cache()
 
-    def find_match_by_ip(self, ip: str) -> Optional[RegistryEntry]:
+    def find_match_by_ip(self, ip: str) -> Optional["RegistryEntry"]:
         """Direct IP lookup — works for CDN-hosted tools."""
         return self._ip_to_entry.get(ip)
 

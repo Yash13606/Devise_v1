@@ -7,8 +7,10 @@ import subprocess
 import uuid
 import socket
 import time
-from typing import Dict, Optional
-from config import get_config
+from typing import Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from config import Config
 
 
 # Module-level cache for get_current_user()
@@ -20,13 +22,18 @@ _USER_CACHE_TTL = 30.0  # seconds
 class IdentityResolver:
     """Resolves user identity from config or OS fallback."""
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: Optional[str] = None, config: "Optional[Config]" = None):
         """Initialize identity resolver.
 
         Args:
-            config_path: Optional config file path
+            config_path: Optional config file path (used when config is not injected)
+            config: Pre-built Config instance (preferred — avoids a second file read)
         """
-        self._config = get_config(config_path)
+        if config is not None:
+            self._config = config
+        else:
+            from config import get_config
+            self._config = get_config(config_path)
         self._identity = self._resolve_identity()
 
     def _get_hostname(self) -> str:
@@ -105,16 +112,17 @@ class IdentityResolver:
         self._identity = self._resolve_identity()
 
 
-def get_identity(config_path: Optional[str] = None) -> IdentityResolver:
+def get_identity(config_path: Optional[str] = None, config=None) -> IdentityResolver:
     """Get identity resolver instance.
 
     Args:
         config_path: Optional config file path
+        config: Optional pre-built Config instance (avoids a second file read)
 
     Returns:
         IdentityResolver instance
     """
-    return IdentityResolver(config_path)
+    return IdentityResolver(config_path=config_path, config=config)
 
 
 def get_current_user() -> Dict[str, str]:

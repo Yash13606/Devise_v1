@@ -2,10 +2,12 @@
 
 import socket
 import logging
-from typing import Optional, Dict, Tuple
-from datetime import datetime, timedelta
+import sys
+from typing import Optional, Dict
 from collections import OrderedDict
 import threading
+
+from result import Ok, Err, Result
 
 
 logger = logging.getLogger(__name__)
@@ -25,6 +27,65 @@ class DNSResolver:
         self._cache_size = cache_size
         self._timeout = timeout
         self._lock = threading.Lock()
+
+    @staticmethod
+    def query_os_cache(ip: str) -> Optional[str]:
+        """Query the Windows OS DNS client cache for which domain resolved to this IP.
+
+        More accurate than reverse-DNS for CDN-hosted tools: tells us the exact
+        domain the browser looked up rather than what PTR records say.
+        Returns None on non-Windows platforms or when the IP isn't in the cache.
+        """
+        if sys.platform != "win32":
+            return None
+        try:
+            import subprocess
+            result = subprocess.run(
+                [
+                    "powershell", "-NoProfile", "-Command",
+                    f"Get-DnsClientCache | Where-Object {{$_.Data -eq '{ip}'}} "
+                    f"| Select-Object -First 1 -ExpandProperty Entry",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+            hostname = result.stdout.strip()
+            return hostname if hostname else None
+        except Exception:
+            return None
+
+    def reverse_lookup_result(self, ip_address: str) -> "Result[str]":
+        """Reverse DNS lookup returning a Result — callers must handle both branches.
+
+        Prefer this over reverse_lookup() at module seams where the difference
+        between 'no PTR record' and 'lookup crashed' matters for metrics.
+        """
+        cached = self._get_from_cache(ip_address)
+        if cached is not None:
+            return Ok(cached)
+        if cached == "":
+            return Err(f"no_ptr:{ip_address}")
+
+        try:
+            socket.setdefaulttimeout(self._timeout)
+            hostname, _, _ = socket.gethostbyaddr(ip_address)
+            self._add_to_cache(ip_address, hostname)
+            logger.debug(f"Resolved {ip_address} -> {hostname}")
+            return Ok(hostname)
+
+        except socket.herror as e:
+            self._add_to_cache(ip_address, None)
+            return Err(f"no_ptr:{e}")
+
+        except socket.timeout:
+            self._add_to_cache(ip_address, None)
+            return Err(f"timeout:{ip_address}")
+
+        except Exception as e:
+            self._add_to_cache(ip_address, None)
+            return Err(f"error:{e}")
 
     def reverse_lookup(self, ip_address: str) -> Optional[str]:
         """Perform reverse DNS lookup on an IP address.
