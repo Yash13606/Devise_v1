@@ -19,6 +19,17 @@ BATCH_SIZE = 100
 class SupabaseReporter:
     """Reports events to Supabase REST API."""
 
+    @classmethod
+    def from_settings(cls, settings: "ReporterSettings", queue=None) -> "SupabaseReporter":
+        """Create from a typed ReporterSettings instance."""
+        from settings import ReporterSettings  # noqa: F401 — imported for type check
+        return cls(
+            supabase_url=settings.supabase_url,
+            supabase_key=settings.supabase_key,
+            timeout=settings.timeout,
+            queue=queue,
+        )
+
     def __init__(
         self,
         supabase_url: str,

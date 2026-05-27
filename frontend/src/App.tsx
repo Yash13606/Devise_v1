@@ -87,8 +87,17 @@ function Dashboard() {
 
 const AppContent = () => {
   const { user, loading } = useAuth();
+  // Safety net: if Auth0 OIDC discovery hangs (e.g. placeholder domain is
+  // unreachable and DNS never responds), force-unblock after 3 s so the
+  // landing page is never permanently blank.
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
+    if (!loading) return;
+    const id = setTimeout(() => setTimedOut(true), 3000);
+    return () => clearTimeout(id);
+  }, [loading]);
 
-  if (loading) return null;
+  if (loading && !timedOut) return null;
 
   return (
     <Routes>

@@ -39,6 +39,9 @@ logs/
 Thumbs.db
 desktop.ini
 
+# ─── Windows Alternate Data Streams (NTFS Zone.Identifier) ────────────────
+*Zone.Identifier
+
 # ─── IDE ───────────────────────────────────────────────────────────────────
 .vscode/settings.json
 .idea/

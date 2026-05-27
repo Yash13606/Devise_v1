@@ -1,24 +1,52 @@
 """AI Tools Registry module for Devise Desktop Agent."""
 
-import ipaddress
 import json
 import logging
 import os
 import socket
-from typing import List, Dict, Optional, Any, Set
+from dataclasses import dataclass
+from typing import List, Dict, Optional, Any
 from pathlib import Path
 import httpx
 
 
 logger = logging.getLogger(__name__)
 
-_CDN_RANGES_FILE = Path(__file__).parent / "data" / "cdn_ip_ranges.json"
+
+@dataclass
+class LookupHint:
+    """Input to Registry.lookup() — supply whatever you have; lookup fills in the rest."""
+    ip: Optional[str] = None
+    hostname: Optional[str] = None  # pre-resolved (OS cache or reverse DNS)
+    process_name: Optional[str] = None
+
+
+@dataclass
+class MatchResult:
+    """Result of Registry.lookup().
+
+    is_match is always set; entry, confidence, and match_method are meaningful
+    only when is_match is True.
+    """
+    is_match: bool
+    entry: Optional["RegistryEntry"] = None
+    confidence: float = 0.0
+    match_method: str = "none"
+
+    @classmethod
+    def no_match(cls) -> "MatchResult":
+        return cls(is_match=False)
 
 
 class RegistryEntry:
     """Represents a single AI tool in the registry."""
 
     def __init__(self, data: Dict[str, Any]):
+        """Initialize registry entry.
+
+        Args:
+            data: Entry data from registry
+        """
         self.domain = data.get("domain", "")
         self.tool_name = data.get("tool_name", "")
         self.category = data.get("category", "unknown")
@@ -26,30 +54,38 @@ class RegistryEntry:
         self.risk_level = data.get("risk_level", "medium")
         self.enterprise_flag = data.get("enterprise_flag", False)
         self.api_domain_flag = data.get("api_domain_flag", False)
-        self.cost_per_seat = data.get("cost_per_seat")
-        self.suggested_alternative = data.get("suggested_alternative")
-        # process_hints: list of process names that strongly indicate this tool
-        self.process_hints: List[str] = [
-            h.lower() for h in data.get("process_hints", [])
-        ]
 
     def matches(self, hostname: str) -> bool:
-        """Check if hostname matches this entry (exact or subdomain suffix)."""
+        """Check if hostname matches this entry.
+
+        Args:
+            hostname: Hostname to check
+
+        Returns:
+            True if hostname matches
+        """
         if not hostname or not self.domain:
             return False
+
         hostname_lower = hostname.lower()
         domain_lower = self.domain.lower()
-        return hostname_lower == domain_lower or hostname_lower.endswith(
-            "." + domain_lower
-        )
 
-    def process_matches_hint(self, process_name: str) -> bool:
-        """Return True if process_name is in this entry's process_hints."""
-        if not self.process_hints or not process_name:
-            return False
-        return process_name.lower() in self.process_hints
+        # Exact match
+        if hostname_lower == domain_lower:
+            return True
+
+        # Wildcard match (subdomain)
+        if hostname_lower.endswith("." + domain_lower):
+            return True
+
+        return False
 
     def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary.
+
+        Returns:
+            Dict representation
+        """
         return {
             "domain": self.domain,
             "tool_name": self.tool_name,
@@ -58,248 +94,143 @@ class RegistryEntry:
             "risk_level": self.risk_level,
             "enterprise_flag": self.enterprise_flag,
             "api_domain_flag": self.api_domain_flag,
-            "process_hints": self.process_hints,
         }
 
 
-class MatchResult:
-    """Result of a registry lookup with confidence score."""
-
-    __slots__ = ("entry", "confidence")
-
-    def __init__(self, entry: RegistryEntry, confidence: int):
-        self.entry = entry
-        # 0-100: 100 = hostname + process hint both matched
-        # 80  = hostname matched, no process hint on entry
-        # 60  = process hint only (CDN IP, no hostname resolution)
-        self.confidence = confidence
-
-
 class Registry:
-    """AI Tools Registry with O(1) domain lookup and CDN IP detection."""
+    """AI Tools Registry with matching and update support."""
 
     def __init__(
         self, registry_path: Optional[str] = None, update_url: Optional[str] = None
     ):
+        """Initialize registry.
+
+        Args:
+            registry_path: Path to bundled registry JSON
+            update_url: URL to check for registry updates
+        """
         self._entries: List[RegistryEntry] = []
         self._update_url = update_url
-        self._ip_to_entry: Dict[str, RegistryEntry] = {}
-        # O(1) domain index: normalized domain -> entry (first registered wins)
-        self._domain_index: Dict[str, RegistryEntry] = {}
-        # CDN networks for fast IP classification
-        self._cdn_networks: List[ipaddress.IPv4Network] = []
-        self._load_cdn_ranges()
+        self._ip_to_entry: Dict[str, RegistryEntry] = {}  # ip -> entry
         self._load_registry(registry_path)
 
-    # ------------------------------------------------------------------
-    # CDN detection
-    # ------------------------------------------------------------------
+    def lookup(self, hint: LookupHint) -> MatchResult:
+        """Unified tool lookup from any available hint.
 
-    def _load_cdn_ranges(self) -> None:
-        """Load CDN CIDR ranges from cdn_ip_ranges.json."""
-        try:
-            with open(_CDN_RANGES_FILE) as f:
-                data = json.load(f)
-            for entry in data.get("ranges", []):
-                cidr = entry.get("cidr", "")
-                if cidr:
-                    try:
-                        self._cdn_networks.append(
-                            ipaddress.IPv4Network(cidr, strict=False)
-                        )
-                    except ValueError:
-                        pass
-            logger.debug(f"Loaded {len(self._cdn_networks)} CDN CIDR ranges")
-        except Exception as e:
-            logger.warning(f"Could not load CDN ranges: {e}")
+        Resolution waterfall (highest confidence first):
+          1. Hostname match — exact or subdomain (from OS cache or reverse DNS)
+          2. Preloaded IP map — unambiguous dedicated IPs only
 
-    def is_cdn_ip(self, ip: str) -> bool:
-        """Return True if ip falls within a known shared CDN range."""
-        try:
-            addr = ipaddress.IPv4Address(ip)
-            return any(addr in net for net in self._cdn_networks)
-        except ValueError:
-            return False
-
-    # ------------------------------------------------------------------
-    # Loading and indexing
-    # ------------------------------------------------------------------
-
-    def _load_registry(self, registry_path: Optional[str]) -> None:
-        if registry_path is None:
-            registry_path = str(
-                Path(__file__).parent / "data" / "ai_tools_registry.json"
-            )
-
-        if not os.path.exists(registry_path):
-            logger.warning(f"Registry file not found: {registry_path}")
-            return
-
-        try:
-            with open(registry_path, "r") as f:
-                data = json.load(f)
-
-            tools = data.get("tools", [])
-            self._entries = [RegistryEntry(t) for t in tools]
-            self._build_domain_index()
-            logger.info(
-                f"Loaded {len(self._entries)} entries from registry "
-                f"(version {data.get('version', 'unknown')})"
-            )
-        except (json.JSONDecodeError, IOError) as e:
-            logger.error(f"Failed to load registry: {e}")
-
-    def _build_domain_index(self) -> None:
-        """Build O(1) lookup dict from domain -> entry."""
-        self._domain_index = {}
-        for entry in self._entries:
-            d = entry.domain.lower()
-            if d not in self._domain_index:
-                self._domain_index[d] = entry
-            # Also index without leading www.
-            if d.startswith("www."):
-                bare = d[4:]
-                if bare not in self._domain_index:
-                    self._domain_index[bare] = entry
-
-    # ------------------------------------------------------------------
-    # DNS pre-resolution
-    # ------------------------------------------------------------------
-
-    def preload_dns(self) -> None:
-        """Resolve all registry domains to IPs at startup.
-
-        IPs claimed by more than one tool (shared CDN) OR that fall within
-        a known CDN range are excluded from the IP map.
+        DNS resolution is the caller's responsibility; supply pre-resolved
+        hostnames via hint.hostname. The IP map covers dedicated IPs that
+        don't need DNS at all.
         """
-        ip_claimants: Dict[str, List[RegistryEntry]] = {}
+        # Phase 1: Hostname match (OS-cache hostname is very accurate for CDNs)
+        if hint.hostname:
+            entry = self.find_match(hint.hostname)
+            if entry:
+                return MatchResult(
+                    is_match=True,
+                    entry=entry,
+                    confidence=0.95,
+                    match_method="hostname",
+                )
+
+        # Phase 2: Preloaded IP map (dedicated IPs — high confidence)
+        if hint.ip:
+            entry = self._ip_to_entry.get(hint.ip)
+            if entry:
+                return MatchResult(
+                    is_match=True,
+                    entry=entry,
+                    confidence=1.0,
+                    match_method="ip_map",
+                )
+
+        return MatchResult.no_match()
+
+    def warm_cache(self) -> None:
+        """Resolve all registry domains to IPs and build the fast IP lookup map.
+
+        IPs claimed by more than one tool (shared CDN IPs like Cloudflare)
+        are excluded from the map so they fall through to the DNS-cache /
+        reverse-DNS phase instead.
+
+        Call this explicitly after construction rather than in __init__ so
+        the blocking network I/O happens at a predictable time.
+        """
+        ip_claimants: dict = {}  # ip -> list of entries that resolve to it
 
         for entry in self._entries:
             try:
                 results = socket.getaddrinfo(entry.domain, None)
                 for r in results:
                     ip = r[4][0]
-                    ip_claimants.setdefault(ip, []).append(entry)
+                    if ip not in ip_claimants:
+                        ip_claimants[ip] = []
+                    ip_claimants[ip].append(entry)
             except Exception:
                 pass
 
-        cdn_skipped = 0
+        # Only map IPs that are unambiguously owned by a single tool
         ambiguous = 0
         for ip, entries in ip_claimants.items():
-            if self.is_cdn_ip(ip):
-                cdn_skipped += 1
-                continue
             if len(entries) == 1:
                 self._ip_to_entry[ip] = entries[0]
             else:
-                ambiguous += 1
+                ambiguous += 1  # shared CDN IP — skip
 
         logger.info(
             f"Pre-resolved {len(self._ip_to_entry)} unambiguous IPs "
-            f"({cdn_skipped} CDN IPs skipped, {ambiguous} shared IPs excluded)"
+            f"({ambiguous} shared CDN IPs excluded from IP map)"
         )
 
-    # ------------------------------------------------------------------
-    # Lookups
-    # ------------------------------------------------------------------
+    def preload_dns(self) -> None:
+        """Deprecated alias for warm_cache(). Use warm_cache() instead."""
+        self.warm_cache()
 
-    def find_match_by_ip(self, ip: str) -> Optional[RegistryEntry]:
-        """Direct IP lookup for non-CDN dedicated IPs."""
+    def find_match_by_ip(self, ip: str) -> Optional["RegistryEntry"]:
+        """Direct IP lookup — works for CDN-hosted tools."""
         return self._ip_to_entry.get(ip)
 
-    def find_match(self, hostname: str) -> Optional[RegistryEntry]:
-        """Find registry entry matching hostname (O(1) dict first, suffix fallback).
+    def _load_registry(self, registry_path: Optional[str]) -> None:
+        """Load registry from bundled file.
 
         Args:
-            hostname: Hostname to match (e.g. "api2.cursor.sh")
-
-        Returns:
-            Best matching RegistryEntry or None
+            registry_path: Path to registry file
         """
-        if not hostname:
-            return None
+        if registry_path is None:
+            # Default to bundled registry
+            registry_path = self._get_default_registry_path()
 
-        hn = hostname.lower().rstrip(".")
+        if os.path.exists(registry_path):
+            try:
+                with open(registry_path, "r") as f:
+                    data = json.load(f)
 
-        # 1. Exact match in index
-        entry = self._domain_index.get(hn)
-        if entry:
-            return entry
+                tools = data.get("tools", [])
+                self._entries = [RegistryEntry(t) for t in tools]
+                logger.info(f"Loaded {len(self._entries)} entries from registry")
 
-        # 2. Strip subdomains one level at a time and check index
-        parts = hn.split(".")
-        for i in range(1, len(parts) - 1):
-            candidate = ".".join(parts[i:])
-            entry = self._domain_index.get(candidate)
-            if entry:
-                return entry
-
-        # 3. Fallback: linear suffix scan for any entries with wildcards
-        for entry in self._entries:
-            if entry.matches(hn):
-                return entry
-
-        return None
-
-    def find_match_with_confidence(
-        self, hostname: Optional[str], process_name: Optional[str]
-    ) -> Optional[MatchResult]:
-        """Find best match and compute a confidence score (0-100).
-
-        Confidence scoring:
-        - 100: hostname matched AND process_name matched a process_hint
-        - 80:  hostname matched, no process hints defined for this entry
-        - 70:  hostname matched but process_name is a generic browser/shell
-        - 0:   no match
-
-        Args:
-            hostname: Resolved hostname or None
-            process_name: Process name (e.g. "cursor.exe") or None
-
-        Returns:
-            MatchResult or None
-        """
-        entry = self.find_match(hostname) if hostname else None
-        if entry is None:
-            return None
-
-        if entry.process_hints:
-            if process_name and entry.process_matches_hint(process_name):
-                confidence = 100
-            else:
-                confidence = 70
+            except (json.JSONDecodeError, IOError) as e:
+                logger.error(f"Failed to load registry: {e}")
+                self._entries = []
         else:
-            confidence = 80
+            logger.warning(f"Registry file not found: {registry_path}")
+            self._entries = []
 
-        return MatchResult(entry, confidence)
-
-    def find_by_process_hint(self, process_name: str) -> Optional[MatchResult]:
-        """Find entry matching purely by process name hint (CDN fallback).
-
-        Used when reverse DNS fails and the IP is a known CDN range. Returns
-        the first entry whose process_hints match the given process name.
-        Confidence is 60 (lower because no hostname confirmed it).
-
-        Args:
-            process_name: Raw process name from psutil
-
-        Returns:
-            MatchResult with confidence=60 or None
-        """
-        if not process_name:
-            return None
-        pn = process_name.lower()
-        for entry in self._entries:
-            if pn in entry.process_hints:
-                return MatchResult(entry, 60)
-        return None
-
-    # ------------------------------------------------------------------
-    # Registry management
-    # ------------------------------------------------------------------
+    def _get_default_registry_path(self) -> str:
+        """Get default bundled registry path."""
+        # Relative to this module
+        module_dir = Path(__file__).parent
+        return str(module_dir / "data" / "ai_tools_registry.json")
 
     async def check_for_updates(self) -> bool:
-        """Check for registry updates from backend."""
+        """Check for registry updates from backend.
+
+        Returns:
+            True if updates were applied
+        """
         if not self._update_url:
             return False
 
@@ -307,38 +238,92 @@ class Registry:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(self._update_url)
                 response.raise_for_status()
+
                 data = response.json()
                 new_entries = [RegistryEntry(t) for t in data.get("tools", [])]
+
                 if new_entries:
                     self._entries = new_entries
-                    self._build_domain_index()
                     logger.info(f"Updated registry with {len(new_entries)} entries")
                     return True
+
         except Exception as e:
             logger.warning(f"Failed to check for registry updates: {e}")
 
         return False
 
+    def find_match(self, hostname: str) -> Optional[RegistryEntry]:
+        """Find registry entry matching hostname.
+
+        Args:
+            hostname: Hostname to match
+
+        Returns:
+            Matching RegistryEntry or None
+        """
+        for entry in self._entries:
+            if entry.matches(hostname):
+                return entry
+        return None
+
     def find_all_matches(self, hostname: str) -> List[RegistryEntry]:
-        """Find all entries matching hostname (linear scan)."""
-        return [e for e in self._entries if e.matches(hostname)]
+        """Find all registry entries matching hostname.
+
+        Args:
+            hostname: Hostname to match
+
+        Returns:
+            List of matching entries
+        """
+        matches = []
+        for entry in self._entries:
+            if entry.matches(hostname):
+                matches.append(entry)
+        return matches
 
     @property
     def entries(self) -> List[RegistryEntry]:
+        """Get all registry entries."""
         return self._entries
 
     @property
     def entry_count(self) -> int:
+        """Get number of entries."""
         return len(self._entries)
 
     def get_tools_by_category(self, category: str) -> List[RegistryEntry]:
+        """Get entries by category.
+
+        Args:
+            category: Category to filter by
+
+        Returns:
+            List of entries in category
+        """
         return [e for e in self._entries if e.category == category]
 
     def get_tools_by_vendor(self, vendor: str) -> List[RegistryEntry]:
+        """Get entries by vendor.
+
+        Args:
+            vendor: Vendor to filter by
+
+        Returns:
+            List of entries from vendor
+        """
         return [e for e in self._entries if e.vendor == vendor]
 
 
 def create_registry(
     registry_path: Optional[str] = None, update_url: Optional[str] = None
 ) -> Registry:
+    """Create a registry instance.
+
+    Args:
+        registry_path: Path to bundled registry
+        update_url: URL for registry updates
+
+    Returns:
+        Registry instance
+    """
     return Registry(registry_path, update_url)

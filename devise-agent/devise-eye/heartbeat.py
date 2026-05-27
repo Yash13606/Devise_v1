@@ -17,6 +17,19 @@ HEARTBEAT_INTERVAL = 300
 class HeartbeatSender:
     """Sends periodic heartbeat events to Supabase."""
 
+    @classmethod
+    def from_settings(cls, settings: "HeartbeatSettings", queue=None) -> "HeartbeatSender":
+        """Create from a typed HeartbeatSettings instance."""
+        return cls(
+            device_id=settings.device_id,
+            org_id=settings.org_id,
+            user_email=settings.user_email,
+            agent_version=settings.agent_version,
+            supabase_url=settings.supabase_url,
+            supabase_key=settings.supabase_key,
+            queue=queue,
+        )
+
     def __init__(
         self,
         device_id: str,
