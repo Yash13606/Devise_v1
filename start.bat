@@ -35,6 +35,16 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
+REM Install / update agent Python dependencies
+echo [INFO] Installing agent dependencies...
+python -m pip install -r devise-agent\devise-eye\requirements.txt -q
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to install agent dependencies.
+    pause
+    exit /b 1
+)
+echo [OK] Agent dependencies ready.
+
 REM Check for concurrently package
 if not exist "node_modules\.bin\concurrently.cmd" (
     echo [INFO] Installing concurrently...
