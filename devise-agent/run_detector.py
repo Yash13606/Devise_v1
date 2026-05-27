@@ -14,7 +14,7 @@ import json
 import os
 
 # Make the devise-agent package importable
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "devise-agent"))
+sys.path.insert(0, os.path.dirname(__file__))
 
 from prompt_injection_detector import detect_prompt_injection  # noqa: E402
 
