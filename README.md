@@ -530,5 +530,40 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Last Updated:** April 16, 2026  
+## 🤖 LLM Integration
+
+Devise-CAD integrates three external tools to harden and test the AI detection pipeline:
+
+### 1. Superagent Safety Client
+Real-time prompt-injection detection powered by the `safety-agent` Python package.
+
+- **Wrapper:** `devise-agent/superagent_client.py`
+- **Detector helper:** `devise-agent/prompt_injection_detector.py`
+- **Hook:** Called in `DeviseAgent._process_connection()` before any LLM inference
+- **Config:** Set `SUPERAGENT_API_KEY` in your `.env` (see `.env.example`)
+
+### 2. ChatGPT System Prompts Library
+Hundreds of real-world system prompts copied to `devise-agent/prompt_library/` for use as reference prompts, test fixtures, or fine-tuning data.
+
+```
+devise-agent/prompt_library/
+├── gpts/              ← Custom GPT system prompts
+├── official-product/  ← OpenAI official product prompts
+└── opensource-prj/    ← Open-source project prompts
+```
+
+### 3. Promptfoo — Prompt Testing & CI
+Automated evaluation of the prompt-injection detector across benign and malicious test cases.
+
+```bash
+npm run test:prompts   # Run all prompt tests locally
+```
+
+CI runs on every push via `.github/workflows/prompt-tests.yml`.
+
+> **Full details:** See [`docs/llm_integration.md`](docs/llm_integration.md)
+
+---
+
+**Last Updated:** May 24, 2026  
 **Status:** ⚠️ Beta (Security fixes required before production)

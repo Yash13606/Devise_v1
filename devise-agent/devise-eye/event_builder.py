@@ -26,8 +26,16 @@ class EventBuilder:
         "is_approved",
         "is_blocked",
         "sensitivity_score",
+        "confidence",
         "timestamp",
     ]
+
+    # Browsers that make AI requests on behalf of the user (not direct API calls)
+    BROWSER_PROCESSES = {
+        "chrome.exe", "chrome", "msedge.exe", "msedge", "firefox.exe", "firefox",
+        "safari", "brave.exe", "brave", "opera.exe", "opera", "vivaldi.exe",
+        "vivaldi", "arc.exe", "arc",
+    }
 
     def __init__(self, identity: Dict[str, str], device_id: str, org_id: str):
         """Initialize event builder.
@@ -59,6 +67,9 @@ class EventBuilder:
         bytes_write: Optional[int] = None,
         block_reason: Optional[str] = None,
         policy_matched: Optional[str] = None,
+        confidence: int = 100,
+        data_type: Optional[str] = None,
+        sensitivity_flag: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Build event object with required schema.
 
@@ -75,15 +86,26 @@ class EventBuilder:
             high_frequency: True if domain exceeds high-frequency threshold
             bytes_read: Disk bytes read by process (proxy for activity)
             bytes_write: Disk bytes written by process (proxy for activity)
+            data_type: The type of data detected (e.g. PII, PHI)
+            sensitivity_flag: More specific sensitivity context
 
         Returns:
             Event dict matching required schema
         """
-        event_type = "blocked" if is_blocked else "detected"
+        if is_blocked:
+            event_type = "blocked"
+        elif process_name.lower() in self.BROWSER_PROCESSES:
+            event_type = "browser_session"
+        elif process_name != "unknown":
+            event_type = "api_call"
+        else:
+            event_type = "detected"
 
         event = {
             "org_id": self._org_id,
             "user_id": self._identity.get("user_id", "unknown"),
+            "user_email": self._identity.get("user_email", "unknown"),
+            "department": self._identity.get("department", "unknown"),
             "device_id": self._device_id,
             "tool_name": tool_name,
             "domain": domain,
@@ -96,6 +118,7 @@ class EventBuilder:
             "is_approved": is_approved,
             "is_blocked": is_blocked,
             "sensitivity_score": sensitivity_score,
+            "confidence": max(0, min(100, confidence)),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -112,6 +135,10 @@ class EventBuilder:
             event["block_reason"] = block_reason
         if policy_matched is not None:
             event["policy_matched"] = policy_matched
+        if data_type is not None:
+            event["data_type"] = data_type
+        if sensitivity_flag is not None:
+            event["sensitivity_flag"] = sensitivity_flag
 
         # Validate required fields
         self._validate_event(event)

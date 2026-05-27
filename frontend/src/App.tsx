@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import { LoginPage } from "@/pages/LoginPage";
 import { SignupPage } from "@/pages/SignupPage";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { BoardExposureSummary } from "@/components/dashboard/BoardExposureSummary";
 import { KpiCards } from "@/components/dashboard/KpiCards";
 import { BentoRow } from "@/components/dashboard/BentoRow";
 import { UsageTrendChart } from "@/components/dashboard/UsageTrendChart";
@@ -34,8 +35,11 @@ import { SpendPage } from "./pages/landing/SpendPage";
 import { AboutPage } from "./pages/landing/AboutPage";
 import { UseCasesPage } from "./pages/landing/UseCasesPage";
 import { DemoPage } from "./pages/landing/DemoPage";
+import { FinancialServicesPage } from "./pages/landing/FinancialServicesPage";
+import { EnterprisePage } from "./pages/landing/EnterprisePage";
 import NotFound from "./pages/landing/NotFound";
 import { MCPRouter } from "./pages/mcp/router";
+import { UnderstandDashboard } from "./pages/UnderstandDashboard";
 
 type Tab = "overview" | "live-feed" | "analytics" | "devices" | "alerts" | "subscriptions" | "settings" | "team" | "firewall" | "data-risk";
 
@@ -52,6 +56,7 @@ function Dashboard() {
       >
         {activeTab === "overview" && (
           <div className="flex flex-col gap-4">
+            <BoardExposureSummary />
             <KpiCards onNavigate={setActiveTab as (tab: string) => void} />
             <div className="flex gap-4">
               <BentoRow onNavigate={setActiveTab as (tab: string) => void} />
@@ -92,6 +97,8 @@ const AppContent = () => {
       <Route path="/product/oversight" element={<OversightPage />} />
       <Route path="/product/pulse" element={<PulsePage />} />
       <Route path="/product/spend" element={<SpendPage />} />
+      <Route path="/solutions/financial-services" element={<FinancialServicesPage />} />
+      <Route path="/solutions/enterprise" element={<EnterprisePage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/use-cases" element={<UseCasesPage />} />
       <Route path="/demo" element={<DemoPage />} />
@@ -110,6 +117,10 @@ const AppContent = () => {
       <Route 
         path="/dashboard/*" 
         element={user ? <Dashboard /> : <Navigate to="/login" replace />} 
+      />
+      <Route
+        path="/understand"
+        element={user ? <UnderstandDashboard /> : <Navigate to="/login" replace />}
       />
       
       {/* MCP Gateway Dashboard Routes (Protected) */}

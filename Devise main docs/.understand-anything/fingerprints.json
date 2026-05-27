@@ -1,0 +1,127 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "local-202605260036",
+  "generatedAt": "2026-05-25T19:20:28.586Z",
+  "files": {
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "75a2a4bb954933b6f079f0d1bf8928893475a3c81fa545d619543690a6e514a3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "MASTER.md": {
+      "filePath": "MASTER.md",
+      "contentHash": "1b5c7def2cd7e86b8d77464da74ad21c4f72da8ac9ae30bc8f81b988f7c3f409",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 165,
+      "hasStructuralAnalysis": true
+    },
+    "01-EXECUTIVE-SUMMARY.md": {
+      "filePath": "01-EXECUTIVE-SUMMARY.md",
+      "contentHash": "ea349c6785a243990f7e8f8c2183882753e003ac43bffef6890ead5686e3104e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 77,
+      "hasStructuralAnalysis": true
+    },
+    "02-BUSINESS-MODEL.md": {
+      "filePath": "02-BUSINESS-MODEL.md",
+      "contentHash": "00a49b0a8ec802d32a12de240da555fcbdcadc01fa98afc52399027aa84dca2c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 122,
+      "hasStructuralAnalysis": true
+    },
+    "03-PRODUCT.md": {
+      "filePath": "03-PRODUCT.md",
+      "contentHash": "e392797a2bb7c0ff2d6c04ba5bd47e225b9abaab6d33e70fc3599119e2aa33eb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 148,
+      "hasStructuralAnalysis": true
+    },
+    "04-TECHNOLOGY-ARCHITECTURE.md": {
+      "filePath": "04-TECHNOLOGY-ARCHITECTURE.md",
+      "contentHash": "5989a18ce02d406ae027d5109792aabf9ee8669254e7e4af576a66fe54cc9e64",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 148,
+      "hasStructuralAnalysis": true
+    },
+    "05-VERTICALS-AND-SOLUTIONS.md": {
+      "filePath": "05-VERTICALS-AND-SOLUTIONS.md",
+      "contentHash": "186c35ece9ac8caa1a21a08d57c2d54e9bd1a7409d82f88275db817527619f68",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 201,
+      "hasStructuralAnalysis": true
+    },
+    "06-SECURITY-COMPLIANCE.md": {
+      "filePath": "06-SECURITY-COMPLIANCE.md",
+      "contentHash": "9d626beb68bde8c429158cf0abe59f4991f8b2afd0392aa63618c27b9e975e57",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 156,
+      "hasStructuralAnalysis": true
+    },
+    "07-INTEGRATIONS-ECOSYSTEM.md": {
+      "filePath": "07-INTEGRATIONS-ECOSYSTEM.md",
+      "contentHash": "d713ff62eff320ac22bf999ab8be5b73063b2ac9c28b76582749ab28b606a127",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 165,
+      "hasStructuralAnalysis": true
+    },
+    "08-MARKET-THESIS.md": {
+      "filePath": "08-MARKET-THESIS.md",
+      "contentHash": "599e178b32c89550f3de75b732a8efb474e10c8c5f3ba0250086612138d3fc34",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "09-GO-TO-MARKET.md": {
+      "filePath": "09-GO-TO-MARKET.md",
+      "contentHash": "bee54906a3364325e0a03d4effe839301b4281fa11efab3241b779921bfb939b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 202,
+      "hasStructuralAnalysis": true
+    },
+    "10-COMPETITIVE-POSITIONING.md": {
+      "filePath": "10-COMPETITIVE-POSITIONING.md",
+      "contentHash": "b281046955c7757480bda06e1934b2b5ea47f8180d3753eb7ee28a45fe0442be",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 143,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

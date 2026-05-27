@@ -76,6 +76,38 @@ export const Navbar = () => {
               </DropdownMenu.Portal>
             </DropdownMenu.Root>
 
+            {/* Solutions Dropdown */}
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger className="flex items-center gap-1 text-sm font-medium text-brand-dark hover:text-brand-orange outline-none cursor-pointer">
+                Solutions <ChevronDown size={14} />
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content className="bg-white rounded-2xl shadow-heavy p-2 min-w-[280px] mt-2 z-[60] animate-in fade-in slide-in-from-top-2" sideOffset={8}>
+                  <div className="px-4 py-2 text-[10px] uppercase tracking-widest font-bold text-brand-gray mb-1">
+                    By Industry
+                  </div>
+                  <DropdownMenu.Item className="outline-none" asChild>
+                    <Link to="/solutions/financial-services" className="flex items-center gap-3 p-3 rounded-xl hover:bg-brand-cream transition-colors">
+                      <Building className="text-brand-orange" size={18} />
+                      <div className="font-bold text-brand-dark text-sm">Financial Services</div>
+                    </Link>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item className="outline-none" asChild>
+                    <Link to="/solutions/enterprise" className="flex items-center gap-3 p-3 rounded-xl hover:bg-brand-cream transition-colors">
+                      <Briefcase className="text-brand-purple" size={18} />
+                      <div className="font-bold text-brand-dark text-sm">For Enterprise</div>
+                    </Link>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item className="outline-none" disabled>
+                    <span className="flex items-center gap-3 p-3 rounded-xl opacity-50 cursor-not-allowed">
+                      <Activity className="text-gray-400" size={18} />
+                      <div className="font-bold text-brand-dark text-sm">Healthcare (Coming Soon)</div>
+                    </span>
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+
             {/* Use Cases Dropdown */}
             <DropdownMenu.Root>
               <DropdownMenu.Trigger className="flex items-center gap-1 text-sm font-medium text-brand-dark hover:text-brand-orange outline-none cursor-pointer">

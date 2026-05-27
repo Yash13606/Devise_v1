@@ -66,3 +66,10 @@ frontend/lint-output.txt
 frontend/lint-results.json
 mcp-gateway/test_out.txt
 mcp-gateway/test-gateway.js
+
+# ─── External & Unnecessary ────────────────────────────────────────────────
+external/
+.claude/
+.claude-flow/
+.codegraph/
+graphify-out/

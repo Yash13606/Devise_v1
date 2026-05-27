@@ -5,9 +5,14 @@ import signal
 import sys
 import logging
 import os
+import time
+import subprocess
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 from datetime import datetime
+
+# Add parent devise-agent dir to path so prompt_injection_detector is importable
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Configure logging
 logging.basicConfig(
@@ -41,6 +46,7 @@ class DeviseAgent:
         from tamper_guard import TamperGuard
         from firewall_monitor import create_firewall_monitor
         from sensitivity_monitor import create_sensitivity_monitor
+        from process_context import create_process_context_resolver
 
         # Load configuration
         self._config = get_config(config_path)
@@ -126,6 +132,15 @@ class DeviseAgent:
         )
         self._sensitivity_monitor = create_sensitivity_monitor()
 
+        # Process context resolver for VS Code extension attribution
+        self._process_context_resolver = create_process_context_resolver()
+
+        # Short-lived Windows DNS cache result (5s window to avoid per-connection
+        # PowerShell subprocess spawns on every psutil detection cycle)
+        self._dns_cache_snapshot: Dict[str, str] = {}
+        self._dns_cache_snapshot_ts: float = 0.0
+        self._dns_cache_snapshot_ttl: float = 5.0
+
         # Initialize config poller for FR-30 (remote config)
         self._config_poller: Optional[ConfigPoller] = None
         if self._config.remote_config_enabled:
@@ -190,31 +205,49 @@ class DeviseAgent:
         # Disable legacy HTTP post to missing event API for Supabase
         pass
 
-    def _get_hostname_from_dns_cache(self, ip: str) -> "Optional[str]":
-        """Query Windows DNS cache to find which domain recently resolved to this IP.
-        
-        This is far more accurate than reverse-DNS for CDN-hosted tools (Cloudflare,
-        AWS, etc.) because it tells us which domain the browser actually looked up.
+    def _refresh_dns_cache_snapshot(self) -> None:
+        """Refresh the Windows DNS client cache snapshot (at most every 5 s).
+
+        Spawning PowerShell per connection is expensive. Instead we batch-fetch
+        the entire DNS cache once and serve lookups from the in-memory dict for
+        up to _dns_cache_snapshot_ttl seconds.
         """
         if sys.platform != "win32":
-            return None
+            return
+        now = time.monotonic()
+        if now - self._dns_cache_snapshot_ts < self._dns_cache_snapshot_ttl:
+            return
         try:
             import subprocess
             result = subprocess.run(
                 [
                     "powershell", "-NoProfile", "-Command",
-                    f"Get-DnsClientCache | Where-Object {{$_.Data -eq '{ip}'}} "
-                    f"| Select-Object -First 1 -ExpandProperty Entry",
+                    "Get-DnsClientCache | Select-Object Entry, Data "
+                    "| ConvertTo-Csv -NoTypeInformation",
                 ],
                 capture_output=True,
                 text=True,
-                timeout=2,
+                timeout=3,
                 creationflags=subprocess.CREATE_NO_WINDOW,
             )
-            hostname = result.stdout.strip()
-            return hostname if hostname else None
-        except Exception:
+            snapshot: Dict[str, str] = {}
+            lines = result.stdout.strip().splitlines()
+            for line in lines[1:]:  # skip CSV header
+                parts = line.strip().strip('"').split('","')
+                if len(parts) == 2:
+                    hostname, ip = parts[0], parts[1]
+                    if hostname and ip:
+                        snapshot[ip] = hostname
+            self._dns_cache_snapshot = snapshot
+            self._dns_cache_snapshot_ts = now
+        except Exception as e:
+            logger.debug(f"DNS cache snapshot refresh failed: {e}")
+
+    def _get_hostname_from_dns_cache(self, ip: str) -> Optional[str]:
+        """Return hostname from the batched Windows DNS cache snapshot."""
+        if sys.platform != "win32":
             return None
+        return self._dns_cache_snapshot.get(ip)
 
     async def _process_connection(self, connection: dict) -> None:
         """Process a single connection.
@@ -228,48 +261,87 @@ class DeviseAgent:
         if not remote_ip:
             return
 
-        # Phase 0 Match: Windows DNS cache — most accurate for browser traffic.
-        # Tells us the exact domain the browser resolved for this IP, handling
-        # CDN collisions (e.g. qwen.ai vs claude.ai on shared Cloudflare IPs).
-        entry = None
-        cached_hostname = self._get_hostname_from_dns_cache(remote_ip)
-        if cached_hostname:
-            entry = self._registry.find_match(cached_hostname)
-            if entry:
-                logger.debug(f"DNS cache match: {remote_ip} → {cached_hostname} → {entry.tool_name}")
+        # ── Prompt-injection guard ────────────────────────────────────────────
+        # Screen any process_name / metadata text that will be forwarded to an
+        # LLM before it reaches the registry or reporter pipeline.
+        _proc_text = connection.get("process_name", "") or ""
+        if _proc_text:
+            try:
+                from prompt_injection_detector import detect_prompt_injection
+                _guard = detect_prompt_injection(_proc_text)
+                if _guard.get("injected"):
+                    logger.warning(
+                        f"Prompt injection detected in connection metadata "
+                        f"(ip={remote_ip}, pid={pid}): {_guard.get('description')}"
+                    )
+                    return  # Drop the connection — do not process further
+            except Exception as _guard_err:
+                logger.debug(f"Injection guard skipped: {_guard_err}")
+        # ─────────────────────────────────────────────────────────────────────
 
-        # Phase 1 Match: Preloaded unambiguous IP→tool map (dedicated IPs only)
-        if not entry:
-            entry = self._registry.find_match_by_ip(remote_ip)
-
-        # Phase 2 Match: Reverse DNS + hostname match (fallback)
-        if not entry:
-            hostname = self._dns_resolver.reverse_lookup(remote_ip)
-            if hostname:
-                entry = self._registry.find_match(hostname)
-
-        if not entry:
-            logger.debug(f"No registry match for IP {remote_ip}")
-            return
-
-        # Get process name and path early — needed for dedup key
+        # Resolve rich process context early — needed for CDN fallback phase
         process_name = connection.get("process_name", "unknown")
         process_path = connection.get("process_path", "")
+        if (not process_name or process_name == "unknown") and pid:
+            proc_info = self._detector.get_process_info(pid)
+            process_name = proc_info.get("process_name", "unknown")
+            process_path = proc_info.get("process_path", "")
 
-        if not process_name or process_name == "unknown":
-            if pid:
-                process_info = self._detector.get_process_info(pid)
-                process_name = process_info.get("process_name", "unknown")
-                process_path = process_info.get("process_path", "")
+        if pid:
+            ctx = self._process_context_resolver.resolve(pid, process_name)
+            # Use the narrowed tool hint (e.g. "cursor.exe" for a Cursor fork of Code)
+            if ctx.tool_hint:
+                process_name = ctx.tool_hint
+            if ctx.exe_path and not process_path:
+                process_path = ctx.exe_path
+
+        from registry import MatchResult
+        match: Optional[MatchResult] = None
+
+        # Phase 0: Windows DNS cache snapshot (batch refresh every 5 s)
+        self._refresh_dns_cache_snapshot()
+        cached_hostname = self._get_hostname_from_dns_cache(remote_ip)
+        if cached_hostname:
+            match = self._registry.find_match_with_confidence(cached_hostname, process_name)
+            if match:
+                logger.debug(
+                    f"DNS-cache match: {remote_ip} → {cached_hostname} → "
+                    f"{match.entry.tool_name} (conf={match.confidence})"
+                )
+
+        # Phase 1: Pre-resolved unambiguous IP map (skips CDN IPs automatically)
+        if not match:
+            entry = self._registry.find_match_by_ip(remote_ip)
+            if entry:
+                confidence = 100 if entry.process_matches_hint(process_name) else 80
+                match = MatchResult(entry, confidence)
+
+        # Phase 2: Reverse DNS (skip if this IP is a known CDN range)
+        if not match:
+            if self._registry.is_cdn_ip(remote_ip):
+                # CDN IP — reverse DNS won't help; try process-hint fallback
+                match = self._registry.find_by_process_hint(process_name)
+                if match:
+                    logger.debug(
+                        f"CDN IP {remote_ip} attributed to {match.entry.tool_name} "
+                        f"via process hint '{process_name}' (conf={match.confidence})"
+                    )
+            else:
+                hostname = self._dns_resolver.reverse_lookup(remote_ip)
+                if hostname:
+                    match = self._registry.find_match_with_confidence(hostname, process_name)
+
+        if not match:
+            logger.debug(f"No registry match for IP {remote_ip} (process={process_name})")
+            return
+
+        entry = match.entry
+        confidence = match.confidence
 
         # Deduplicate by tool + process NAME (not PID).
-        # Browsers spawn a new PID per tab — using PID would let the same
-        # tool fire once per tab. Process name (e.g. "brave.exe") keeps all
-        # tabs of the same browser in one dedup bucket.
         dedup_process = process_name if process_name and process_name != "unknown" else str(pid)
         if not self._deduplicator.should_report(entry.tool_name, dedup_process):
             return
-
 
         # Get I/O counters (FR-11)
         bytes_read = None
@@ -284,23 +356,38 @@ class DeviseAgent:
 
         # Check local firewall policy
         is_blocked = self._firewall_monitor.is_blocked(entry.domain)
-        
+
         # ACTIVE INTERCEPTION (FR-15): Terminate process if firewall rule blocks it
         if is_blocked and pid:
             try:
                 import psutil
                 psutil.Process(pid).terminate()
-                logger.warning(f"BLOCKED AND TERMINATED: Process {pid} connecting to {entry.domain}")
+                logger.warning(
+                    f"BLOCKED AND TERMINATED: Process {pid} connecting to {entry.domain}"
+                )
+                
+                # Coaching Notification
+                msg = f"Devise Policy Block: {entry.tool_name} is not approved."
+                if hasattr(entry, 'suggested_alternative') and entry.suggested_alternative:
+                    msg += f" Please use {entry.suggested_alternative} instead."
+                
+                try:
+                    subprocess.run(["notify-send", "AI Security Alert", msg, "-u", "critical"], timeout=2)
+                except Exception:
+                    pass
             except Exception as e:
                 logger.error(f"Failed to terminate blocked process {pid}: {e}")
-        
-        # Get context sensitivity score
-        sensitivity_score = self._sensitivity_monitor.get_current_score()
+
+        # Get context sensitivity details
+        sensitivity_context = self._sensitivity_monitor.get_context_summary()
+        sensitivity_score = sensitivity_context.get("score", 0)
+        data_type = sensitivity_context.get("data_type", "clean")
+        sensitivity_flag = sensitivity_context.get("sensitivity_flag")
 
         # Track connection frequency (FR-10)
         freq_result = self._frequency_tracker.record(entry.domain)
 
-        # Build event with process path (FR-07) + analytics fields (FR-10, FR-11)
+        # Build event with confidence score + smart event_type
         event = self._event_builder.build_event(
             tool_name=entry.tool_name,
             domain=entry.domain,
@@ -316,6 +403,9 @@ class DeviseAgent:
             high_frequency=freq_result.high_frequency,
             bytes_read=bytes_read,
             bytes_write=bytes_write,
+            confidence=confidence,
+            data_type=data_type,
+            sensitivity_flag=sensitivity_flag,
         )
 
         # Update heartbeat with last detection time (FR-20)
@@ -326,7 +416,10 @@ class DeviseAgent:
         success = await self._reporter.report_event(event)
 
         if success:
-            logger.info(f"Reported: {entry.tool_name} from {process_name}")
+            logger.info(
+                f"Reported: {entry.tool_name} from {process_name} "
+                f"(conf={confidence}, type={event['event_type']})"
+            )
         else:
             logger.warning(f"Failed to report: {entry.tool_name}, queued for retry")
 
@@ -370,6 +463,10 @@ class DeviseAgent:
 
                 # Cleanup old deduplication entries
                 self._deduplicator.cleanup_old_entries()
+
+                # Evict stale process context cache entries every ~5 minutes
+                if heartbeat_counter == 0:
+                    self._process_context_resolver.clear_cache()
 
                 # Write liveness heartbeat (FR-29)
                 self._liveness_monitor.write_liveness()

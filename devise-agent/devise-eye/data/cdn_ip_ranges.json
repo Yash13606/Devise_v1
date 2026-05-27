@@ -1,168 +1,46 @@
 {
-  "version": "1.0.0",
-  "updated_at": "2026-03-07",
-  "description": "CIDR ranges for AI API CDN providers",
+  "version": "2.0.0",
+  "updated_at": "2026-05-24",
+  "description": "Known CDN IP ranges shared by multiple AI services. IPs in these ranges cannot be attributed to a specific tool via IP alone — skip to process-context resolution instead.",
   "ranges": [
-    {
-      "cdn": "Cloudflare",
-      "tool": "OpenAI",
-      "ranges": [
-        "13.0.0.0/8",
-        "104.16.0.0/12"
-      ]
-    },
-    {
-      "cdn": "Cloudflare",
-      "tool": "Anthropic",
-      "ranges": [
-        "13.0.0.0/8",
-        "104.16.0.0/12"
-      ]
-    },
-    {
-      "cdn": "Cloudflare",
-      "tool": "Google AI",
-      "ranges": [
-        "13.0.0.0/8",
-        "104.16.0.0/12"
-      ]
-    },
-    {
-      "cdn": "Cloudflare",
-      "tool": "Cohere",
-      "ranges": [
-        "13.0.0.0/8",
-        "104.16.0.0/12"
-      ]
-    },
-    {
-      "cdn": "AWS CloudFront",
-      "tool": "OpenAI",
-      "ranges": [
-        "18.164.0.0/15",
-        "18.208.0.0/12",
-        "52.94.76.0/10",
-        "54.182.0.0/16",
-        "54.192.0.0/16"
-      ]
-    },
-    {
-      "cdn": "AWS CloudFront",
-      "tool": "Anthropic",
-      "ranges": [
-        "18.164.0.0/15",
-        "18.208.0.0/12",
-        "52.94.76.0/10",
-        "54.182.0.0/16",
-        "54.192.0.0/16"
-      ]
-    },
-    {
-      "cdn": "AWS CloudFront",
-      "tool": "Hugging Face",
-      "ranges": [
-        "18.164.0.0/15",
-        "18.208.0.0/12",
-        "52.94.76.0/10"
-      ]
-    },
-    {
-      "cdn": "AWS CloudFront",
-      "tool": "Replicate",
-      "ranges": [
-        "18.164.0.0/15",
-        "18.208.0.0/12"
-      ]
-    },
-    {
-      "cdn": "Azure CDN",
-      "tool": "Microsoft AI",
-      "ranges": [
-        "13.64.0.0/11",
-        "13.96.0.0/13",
-        "13.104.0.0/12",
-        "20.0.0.0/10",
-        "40.64.0.0/10",
-        "52.0.0.0/8"
-      ]
-    },
-    {
-      "cdn": "Azure CDN",
-      "tool": "OpenAI",
-      "ranges": [
-        "13.64.0.0/11",
-        "13.96.0.0/13",
-        "13.104.0.0/12",
-        "20.0.0.0/10",
-        "40.64.0.0/10"
-      ]
-    },
-    {
-      "cdn": "Azure CDN",
-      "tool": "Mistral AI",
-      "ranges": [
-        "13.64.0.0/11",
-        "20.0.0.0/10",
-        "40.64.0.0/10"
-      ]
-    },
-    {
-      "cdn": "Azure CDN",
-      "tool": "AI21 Labs",
-      "ranges": [
-        "13.64.0.0/11",
-        "20.0.0.0/10"
-      ]
-    },
-    {
-      "cdn": "Fastly",
-      "tool": "OpenAI",
-      "ranges": [
-        "23.32.0.0/11",
-        "23.32.0.0/12",
-        "199.232.0.0/16"
-      ]
-    },
-    {
-      "cdn": "Fastly",
-      "tool": "Cohere",
-      "ranges": [
-        "23.32.0.0/11",
-        "199.232.0.0/16"
-      ]
-    },
-    {
-      "cdn": "Cloudflare",
-      "tool": "Perplexity",
-      "ranges": [
-        "13.0.0.0/8",
-        "104.16.0.0/12"
-      ]
-    },
-    {
-      "cdn": "Cloudflare",
-      "tool": "Together AI",
-      "ranges": [
-        "13.0.0.0/8",
-        "104.16.0.0/12"
-      ]
-    },
-    {
-      "cdn": "Cloudflare",
-      "tool": "Meta AI",
-      "ranges": [
-        "13.0.0.0/8",
-        "104.16.0.0/12"
-      ]
-    },
-    {
-      "cdn": "Cloudflare",
-      "tool": "Mistral AI",
-      "ranges": [
-        "13.0.0.0/8",
-        "104.16.0.0/12"
-      ]
-    }
-  ],
-  "notes": "These ranges are used to attribute CDN IPs back to their origin AI tool. When a connection is detected to a CDN IP, the agent checks if the IP falls within any of these ranges and attributes the traffic to the corresponding tool based on reverse DNS or other signals."
+    { "provider": "Cloudflare", "cidr": "173.245.48.0/20" },
+    { "provider": "Cloudflare", "cidr": "103.21.244.0/22" },
+    { "provider": "Cloudflare", "cidr": "103.22.200.0/22" },
+    { "provider": "Cloudflare", "cidr": "103.31.4.0/22" },
+    { "provider": "Cloudflare", "cidr": "141.101.64.0/18" },
+    { "provider": "Cloudflare", "cidr": "108.162.192.0/18" },
+    { "provider": "Cloudflare", "cidr": "190.93.240.0/20" },
+    { "provider": "Cloudflare", "cidr": "188.114.96.0/20" },
+    { "provider": "Cloudflare", "cidr": "197.234.240.0/22" },
+    { "provider": "Cloudflare", "cidr": "198.41.128.0/17" },
+    { "provider": "Cloudflare", "cidr": "162.158.0.0/15" },
+    { "provider": "Cloudflare", "cidr": "104.16.0.0/13" },
+    { "provider": "Cloudflare", "cidr": "104.24.0.0/14" },
+    { "provider": "Cloudflare", "cidr": "172.64.0.0/13" },
+    { "provider": "Cloudflare", "cidr": "131.0.72.0/22" },
+    { "provider": "AWS CloudFront", "cidr": "13.32.0.0/15" },
+    { "provider": "AWS CloudFront", "cidr": "13.35.0.0/16" },
+    { "provider": "AWS CloudFront", "cidr": "18.160.0.0/15" },
+    { "provider": "AWS CloudFront", "cidr": "52.84.0.0/15" },
+    { "provider": "AWS CloudFront", "cidr": "54.182.0.0/16" },
+    { "provider": "AWS CloudFront", "cidr": "54.192.0.0/16" },
+    { "provider": "AWS CloudFront", "cidr": "64.252.64.0/18" },
+    { "provider": "AWS CloudFront", "cidr": "65.8.0.0/16" },
+    { "provider": "AWS CloudFront", "cidr": "99.86.0.0/16" },
+    { "provider": "AWS CloudFront", "cidr": "130.176.0.0/17" },
+    { "provider": "AWS CloudFront", "cidr": "205.251.192.0/19" },
+    { "provider": "AWS CloudFront", "cidr": "216.137.32.0/19" },
+    { "provider": "Fastly",         "cidr": "151.101.0.0/16" },
+    { "provider": "Fastly",         "cidr": "199.232.0.0/16" },
+    { "provider": "Fastly",         "cidr": "23.235.32.0/20" },
+    { "provider": "Fastly",         "cidr": "199.27.72.0/21" },
+    { "provider": "Azure CDN",      "cidr": "20.33.0.0/16" },
+    { "provider": "Azure CDN",      "cidr": "20.34.0.0/15" },
+    { "provider": "Azure CDN",      "cidr": "20.36.0.0/14" },
+    { "provider": "Azure CDN",      "cidr": "20.40.0.0/13" },
+    { "provider": "Azure CDN",      "cidr": "20.128.0.0/16" },
+    { "provider": "Azure CDN",      "cidr": "20.150.0.0/15" },
+    { "provider": "Azure Front Door","cidr": "13.107.246.0/24" },
+    { "provider": "Azure Front Door","cidr": "13.107.213.0/24" }
+  ]
 }

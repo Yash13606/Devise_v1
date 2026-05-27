@@ -5,8 +5,9 @@ with automatic fallback to system DNS.
 """
 
 import logging
-from functools import lru_cache
-from typing import Optional
+import threading
+import time
+from typing import Optional, Tuple
 
 import httpx
 
@@ -43,13 +44,18 @@ class DoHResolver:
       3. System DNS via dns_resolver.DNSResolver (final fallback)
     """
 
-    def __init__(self, timeout: float = DOH_TIMEOUT):
+    def __init__(self, timeout: float = DOH_TIMEOUT, cache_ttl: int = 3600):
         """Initialize DoH resolver.
 
         Args:
             timeout: HTTP request timeout in seconds
+            cache_ttl: Seconds before a cached result expires (default 1 hour)
         """
         self._timeout = timeout
+        self._cache_ttl = cache_ttl
+        # {ip: (hostname_or_None, expiry_timestamp)}
+        self._cache: dict[str, Tuple[Optional[str], float]] = {}
+        self._cache_lock = threading.Lock()
         # Use a single shared httpx client for connection reuse
         self._client = httpx.Client(timeout=self._timeout)
 
@@ -125,11 +131,12 @@ class DoHResolver:
             logger.debug(f"System DNS fallback error for {ip}: {e}")
         return None
 
-    @lru_cache(maxsize=1024)
     def reverse_lookup(self, ip: str) -> Optional[str]:
         """Perform reverse DNS lookup via DoH with fallback chain.
 
         Resolution order: Cloudflare DoH → Google DoH → System DNS
+        Results are cached with a TTL to prevent stale entries in long-running
+        service processes.
 
         Args:
             ip: IP address to resolve (e.g., "1.2.3.4")
@@ -137,6 +144,16 @@ class DoHResolver:
         Returns:
             Hostname or None if all methods fail
         """
+        # Check TTL-aware cache
+        now = time.monotonic()
+        with self._cache_lock:
+            cached = self._cache.get(ip)
+            if cached is not None:
+                hostname, expiry = cached
+                if now < expiry:
+                    return hostname
+                del self._cache[ip]
+
         ptr_name = _ip_to_ptr(ip)
         logger.debug(f"DoH reverse lookup: {ip} → {ptr_name}")
 
@@ -144,20 +161,21 @@ class DoHResolver:
         hostname = self._query_cloudflare(ptr_name)
         if hostname:
             logger.debug(f"Cloudflare DoH resolved {ip} → {hostname}")
-            return hostname
-
-        # Fallback: Google DoH
-        hostname = self._query_google(ptr_name)
-        if hostname:
-            logger.debug(f"Google DoH resolved {ip} → {hostname}")
-            return hostname
-
-        # Final fallback: system DNS
-        hostname = self._query_system_dns(ip)
-        if hostname:
-            logger.debug(f"System DNS resolved {ip} → {hostname}")
         else:
-            logger.debug(f"All DNS methods failed for {ip}")
+            # Fallback: Google DoH
+            hostname = self._query_google(ptr_name)
+            if hostname:
+                logger.debug(f"Google DoH resolved {ip} → {hostname}")
+            else:
+                # Final fallback: system DNS
+                hostname = self._query_system_dns(ip)
+                if hostname:
+                    logger.debug(f"System DNS resolved {ip} → {hostname}")
+                else:
+                    logger.debug(f"All DNS methods failed for {ip}")
+
+        with self._cache_lock:
+            self._cache[ip] = (hostname, now + self._cache_ttl)
 
         return hostname
 

@@ -4,3 +4,6 @@ python-jose[cryptography]
 python-dotenv
 pydantic
 httpx>=0.25.0
+tree-sitter
+tree-sitter-python
+tree-sitter-javascript

@@ -1,0 +1,6 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore
+# Built-in defaults (always excluded): node_modules/, .git/, dist/, build/, *.lock, etc.
+
+# Exclude the knowledge graph output directory itself
+.understand-anything/

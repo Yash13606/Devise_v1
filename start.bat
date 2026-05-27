@@ -13,9 +13,12 @@ echo ========================================
 echo   Devise-CAD Development Server
 echo ========================================
 echo.
+echo Current directory: %CD%
+echo.
 echo Starting services:
 echo   - Frontend      (React Vite)      -> http://localhost:5173
 echo   - MCP Gateway   (Fastify)         -> http://localhost:3001
+echo   - Backend API   (FastAPI)         -> http://localhost:8000
 echo   - Desktop Agent (Python Monitor)
 echo.
 
@@ -45,7 +48,7 @@ echo Starting services...
 echo.
 
 REM Start all services concurrently
-npx concurrently -k -p "[{name}]" -n "FRONTEND,MCP-GATEWAY,AGENT" -c "cyan,magenta,yellow" "cd frontend && npm run dev" "cd mcp-gateway && npx tsx server.ts" "cd devise-agent\devise-eye && python main.py"
+npx concurrently -k -p "[{name}]" -n "FRONTEND,MCP-GATEWAY,API,AGENT" -c "cyan,magenta,green,yellow" "cd frontend && npm run dev" "cd mcp-gateway && npx tsx server.ts" "python -m uvicorn api.index:app --reload --port 8000" "cd devise-agent\devise-eye && python main.py"
 
 if %errorlevel% neq 0 (
     echo.
