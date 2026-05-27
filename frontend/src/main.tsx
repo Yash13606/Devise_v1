@@ -1,29 +1,38 @@
 import { createRoot } from "react-dom/client";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { ReactNode } from "react";
 import App from "./App.tsx";
 import "./index.css";
 
-// Fall back to stubs so Auth0Provider never receives undefined.
-// With placeholder values the OIDC discovery request fails quickly
-// (DNS NXDOMAIN ~100ms) and Auth0 sets isLoading=false, so the
-// landing page renders. Replace these in frontend/.env with real creds.
-const domain =
-  (import.meta.env.VITE_AUTH0_DOMAIN as string) ||
-  "dev-placeholder.us.auth0.com";
-const clientId =
-  (import.meta.env.VITE_AUTH0_CLIENT_ID as string) ||
-  "placeholder_client_id";
-const audience = import.meta.env.VITE_AUTH0_AUDIENCE as string;
+// A wrapper that only initializes Auth0 if the domain is configured and is not a placeholder.
+// This prevents initialization crashes on connection failure with placeholder values.
+const SafeAuth0Provider = ({ children }: { children: ReactNode }) => {
+  const domain = import.meta.env.VITE_AUTH0_DOMAIN as string;
+  const isPlaceholder = !domain || domain.includes("placeholder");
+
+  if (isPlaceholder) {
+    return <>{children}</>;
+  }
+
+  const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID as string;
+  const audience = import.meta.env.VITE_AUTH0_AUDIENCE as string;
+
+  return (
+    <Auth0Provider
+      domain={domain}
+      clientId={clientId}
+      authorizationParams={{
+        redirect_uri: window.location.origin,
+        audience,
+      }}
+    >
+      {children}
+    </Auth0Provider>
+  );
+};
 
 createRoot(document.getElementById("root")!).render(
-  <Auth0Provider
-    domain={domain}
-    clientId={clientId}
-    authorizationParams={{
-      redirect_uri: window.location.origin,
-      audience,
-    }}
-  >
+  <SafeAuth0Provider>
     <App />
-  </Auth0Provider>
+  </SafeAuth0Provider>
 );

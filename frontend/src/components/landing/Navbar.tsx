@@ -6,7 +6,7 @@ import {
   Grid2x2, Shield, BarChart2, DollarSign, LayoutGrid,
   TrendingUp, AlertTriangle, Menu, X, ChevronDown, Mail,
   BookOpen, FileText, Calendar, GitCompare, HelpCircle,
-  Building, Lock, Briefcase, Phone, Users
+  Building, Lock, Briefcase, Phone, Users, Activity
 } from "lucide-react";
 
 export const Navbar = () => {

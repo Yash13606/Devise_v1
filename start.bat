@@ -4,7 +4,7 @@ title Devise
 
 echo.
 echo  ============================================
-echo    Devise — Development Launcher
+echo    Devise - Development Launcher
 echo  ============================================
 echo.
 echo  Checking dependencies...
@@ -46,9 +46,9 @@ echo    API        http://localhost:8000
 echo    AGENT      monitoring...
 echo.
 
-start "Devise - Frontend"  cmd /k "cd /d %~dp0 && start-frontend.bat"
-start "Devise - API"       cmd /k "cd /d %~dp0 && start-api.bat"
-start "Devise - Agent"     cmd /k "cd /d %~dp0 && start-agent.bat"
+start "Devise - Frontend" cmd /k "cd /d %~dp0frontend && title Devise - Frontend && echo [FRONTEND] Starting React Vite dev server... && npm run dev"
+start "Devise - API" cmd /k "cd /d %~dp0 && title Devise - API && echo [API] Starting FastAPI backend... && python -m uvicorn api.index:app --reload --port 8000"
+start "Devise - Agent" cmd /k "cd /d %~dp0devise-agent\devise-eye && title Devise - Agent && echo [AGENT] Starting Devise Desktop Monitor... && python main.py"
 
 echo  All windows launched. Close this window or press any key to exit.
 pause >nul

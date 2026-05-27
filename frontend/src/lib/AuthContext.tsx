@@ -1,6 +1,8 @@
 import {
   createContext,
   useContext,
+  useState,
+  useEffect,
   type ReactNode,
 } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -21,14 +23,70 @@ interface AuthContextType {
   signIn: () => void;
   signUp: () => void;
   signOut: () => Promise<void>;
-  isDemoMode: false;
+  isDemoMode: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ─── Provider ───────────────────────────────────────────────────────────────
+// ─── Mock Provider for Local Development ───────────────────────────────────
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+const MOCK_USER: AuthUser = {
+  uid: "mock-user-12345",
+  email: "demo@devise.security",
+  displayName: "Demo Administrator",
+  photoURL: "https://api.dicebear.com/7.x/adventurer/svg?seed=demo",
+};
+
+function MockAuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const saved = localStorage.getItem("devise_mock_user");
+    // Default to pre-authenticated for seamless first-load developer experience
+    if (saved === "none") return null;
+    return saved ? JSON.parse(saved) : MOCK_USER;
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const signIn = () => {
+    localStorage.setItem("devise_mock_user", JSON.stringify(MOCK_USER));
+    setUser(MOCK_USER);
+  };
+
+  const signUp = () => {
+    localStorage.setItem("devise_mock_user", JSON.stringify(MOCK_USER));
+    setUser(MOCK_USER);
+  };
+
+  const signOut = async () => {
+    localStorage.setItem("devise_mock_user", "none");
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        session: user,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+        isDemoMode: true,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+// ─── Real Provider for Production (Auth0) ───────────────────────────────────
+
+function RealAuthProvider({ children }: { children: ReactNode }) {
   const {
     user: auth0User,
     isLoading,
@@ -75,6 +133,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+// ─── Main Provider Switcher ────────────────────────────────────────────────
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const domain = import.meta.env.VITE_AUTH0_DOMAIN as string;
+  const isPlaceholder = !domain || domain.includes("placeholder");
+
+  if (isPlaceholder) {
+    return <MockAuthProvider>{children}</MockAuthProvider>;
+  }
+
+  return <RealAuthProvider>{children}</RealAuthProvider>;
 }
 
 // ─── Hook ───────────────────────────────────────────────────────────────────
