@@ -1,0 +1,909 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "Devise",
+    "languages": [
+      "markdown"
+    ],
+    "frameworks": [],
+    "description": "The AI Adoption Engine for Every Company — a closed-loop platform that sees every AI tool your team uses, drives better adoption through real-time interventions, and proves the savings in salary-calibrated dollars. Three phases: Understand → Act → Quantify.",
+    "analyzedAt": "2026-05-25T19:18:16.389Z",
+    "gitCommitHash": "local-202605260036"
+  },
+  "nodes": [
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "label": "Devise — Master Documentation Index",
+      "filePath": "README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Navigation document providing a curated index of all 10 topic documents plus MASTER.md, with four audience-specific reading paths: investor pitch order, buyer evaluation order, engineer/technical order, and sales enablement order. Contains the one-sentence pitch.",
+      "tags": [
+        "navigation",
+        "index",
+        "onboarding",
+        "documentation",
+        "reading-guide"
+      ],
+      "complexity": "simple",
+      "sectionCount": 4,
+      "totalLines": 42,
+      "name": "README.md"
+    },
+    {
+      "id": "document:MASTER.md",
+      "type": "document",
+      "label": "Devise — Complete Master Reference",
+      "filePath": "MASTER.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Comprehensive single-document overview of the entire Devise platform covering: the $2.5B AI spend problem and 95% pilot failure rate, the three-phase Understand→Act→Quantify closed loop, four intervention types (Tool Steering, Workflow Discovery, Personalized Coaching, Friction Detection), six behavioral-engine subsystems, deployment paths from SMB to enterprise, $9/user/month pricing, six vertical solutions, SOC 2/HIPAA/GDPR security posture, 22 integrations across 7 infrastructure layers, market thesis, and data network effect. Hub document that references all 10 topic documents.",
+      "tags": [
+        "overview",
+        "hub",
+        "platform",
+        "ai-adoption",
+        "closed-loop",
+        "understand-act-quantify",
+        "pricing",
+        "security",
+        "integrations"
+      ],
+      "complexity": "moderate",
+      "sectionCount": 15,
+      "totalLines": 164,
+      "name": "MASTER.md"
+    },
+    {
+      "id": "document:01-EXECUTIVE-SUMMARY.md",
+      "type": "document",
+      "label": "01 — Executive Summary",
+      "filePath": "01-EXECUTIVE-SUMMARY.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Investor-facing pitch document. Covers the company positioning (AI Adoption Engine), market reality table ($2.5B spend, 50% shadow AI, 95% pilot failure), what Devise does in 60 seconds, traction signals (1,247 tools detected, 31%→61% adoption lift, $128K waste found), five structural competitive advantages, business model overview ($9/user/month + enterprise custom), and the funding ask.",
+      "tags": [
+        "pitch",
+        "investor",
+        "executive-summary",
+        "traction",
+        "market-size",
+        "competitive-advantage",
+        "funding"
+      ],
+      "complexity": "simple",
+      "sectionCount": 9,
+      "totalLines": 76,
+      "name": "01-EXECUTIVE-SUMMARY.md"
+    },
+    {
+      "id": "document:02-BUSINESS-MODEL.md",
+      "type": "document",
+      "label": "02 — Business Model",
+      "filePath": "02-BUSINESS-MODEL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Detailed business model covering two pricing tiers: Tier 1 Startups at $9/user/month (20–200 employees, self-serve, 60-second install) and Tier 2 Enterprise with custom pricing (200+ employees, dedicated CSM, SCIM/SSO). ROI tables for startup (63× ROI on 50-person org) and enterprise (16× ROI on 5,000-person org). Four revenue model components: platform subscriptions, professional services, API licensing, and data intelligence. Unit economics rationale and seven-step customer lifecycle from awareness to advocacy.",
+      "tags": [
+        "pricing",
+        "revenue-model",
+        "roi",
+        "unit-economics",
+        "saas",
+        "self-serve",
+        "enterprise",
+        "customer-lifecycle"
+      ],
+      "complexity": "moderate",
+      "sectionCount": 13,
+      "totalLines": 121,
+      "name": "02-BUSINESS-MODEL.md"
+    },
+    {
+      "id": "document:03-PRODUCT.md",
+      "type": "document",
+      "label": "03 — The Devise Product",
+      "filePath": "03-PRODUCT.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Product deep-dive covering the closed-loop platform architecture. Phase 1 Understand: network-layer detection of 6,500+ AI tools, instant team mapping via Professional Intelligence (800M profiles), and opportunity assessment. Phase 2 Act: four intervention types through The Sidekick (Tool Steering, Workflow Discovery, Personalized Coaching, Friction Detection). Phase 3 Quantify: five salary-calibrated metrics proving ROI. Compounding flywheel showing 1×→2×→4× value growth. Explicitly describes what is NOT in the product (not a blocking tool, not screen recording, not keylogging).",
+      "tags": [
+        "product",
+        "closed-loop",
+        "understand",
+        "act",
+        "quantify",
+        "sidekick",
+        "interventions",
+        "tool-steering",
+        "workflow-discovery",
+        "coaching",
+        "friction-detection",
+        "flywheel"
+      ],
+      "complexity": "moderate",
+      "sectionCount": 20,
+      "totalLines": 147,
+      "name": "03-PRODUCT.md"
+    },
+    {
+      "id": "document:04-TECHNOLOGY-ARCHITECTURE.md",
+      "type": "document",
+      "label": "04 — Technology Architecture",
+      "filePath": "04-TECHNOLOGY-ARCHITECTURE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Technical architecture document with four implementation phases. Phase 1 Connectors: four connector types (Identity Provider, Network/Security infrastructure, Business Systems, Lightweight Agent). Phase 2 Behavioral Signals: five subsystems (Network-Layer Tool Detection, Team Mapping, Jobs-To-Be-Done Inference, AI Opportunity Assessment, Cross-Company Intelligence). Phase 3 Sidekick: four intervention types with delivery surfaces (Slack, Teams, Email, Browser Extension, Dashboard). Phase 4 Loop: five measurement metrics with salary-calibration logic. Trust & Security layer. Six-subsystem architectural summary. Comparison table showing why network-layer beats SDK, browser extension, and agent alternatives.",
+      "tags": [
+        "architecture",
+        "connectors",
+        "network-layer",
+        "behavioral-signals",
+        "sidekick",
+        "measurement-loop",
+        "trust",
+        "sdk-alternative",
+        "zscaler",
+        "palo-alto",
+        "netskope",
+        "professional-intelligence"
+      ],
+      "complexity": "complex",
+      "sectionCount": 28,
+      "totalLines": 147,
+      "name": "04-TECHNOLOGY-ARCHITECTURE.md"
+    },
+    {
+      "id": "document:05-VERTICALS-AND-SOLUTIONS.md",
+      "type": "document",
+      "label": "05 — Verticals and Solutions",
+      "filePath": "05-VERTICALS-AND-SOLUTIONS.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Six vertical segment playbooks with buyer personas, deployment specifics, and ROI tables. Segment 1 Startups (20–200 employees): 63× ROI on 50-person org, 60-second self-serve install. Segment 2 Enterprise (1,000+): 16× ROI on 5,000-person org, 90-day board-ready timeline, sample real intervention table. Segment 3 Financial Services: SEC/FINRA/PCI-DSS audit trail, before/after compliance table. Segment 4 Healthcare: PHI incident detection flow, two-mode operation (Clinical + Administrative), HIPAA BAA. Segment 5 Technology (SaaS/Platform): license overlap detection, top-10% engineer workflow propagation. Segment 6 Professional Services: partner-level report, ethical walls, billable-hour productivity.",
+      "tags": [
+        "verticals",
+        "startups",
+        "enterprise",
+        "financial-services",
+        "healthcare",
+        "technology",
+        "professional-services",
+        "roi",
+        "compliance",
+        "hipaa",
+        "sec-finra",
+        "deployment"
+      ],
+      "complexity": "complex",
+      "sectionCount": 28,
+      "totalLines": 200,
+      "name": "05-VERTICALS-AND-SOLUTIONS.md"
+    },
+    {
+      "id": "document:06-SECURITY-COMPLIANCE.md",
+      "type": "document",
+      "label": "06 — Security & Compliance",
+      "filePath": "06-SECURITY-COMPLIANCE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Security and compliance reference covering certifications (SOC 2 Type I, HIPAA, GDPR), data protection (TLS 1.3, AES-256-GCM at rest, BYOK, zero-egress architecture), access control (SAML 2.0, OIDC, SCIM provisioning, zero-trust), operational security (penetration testing, vulnerability disclosure, 99.9% SLA), privacy by design (no model training on customer data, configurable retention). AI standards alignment table covering OWASP LLM Top 10, NIST AI RMF, ISO 42001, MITRE ATLAS, AIUC-1, EU AI Act. Vertical compliance add-ons for Healthcare, FinServ, and Professional Services. CISO Pack contents and absolute data-handling commitments.",
+      "tags": [
+        "security",
+        "compliance",
+        "soc2",
+        "hipaa",
+        "gdpr",
+        "encryption",
+        "zero-trust",
+        "saml",
+        "scim",
+        "ai-standards",
+        "owasp",
+        "nist",
+        "iso-42001",
+        "ciso"
+      ],
+      "complexity": "moderate",
+      "sectionCount": 21,
+      "totalLines": 155,
+      "name": "06-SECURITY-COMPLIANCE.md"
+    },
+    {
+      "id": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "type": "document",
+      "label": "07 — Integrations & Ecosystem",
+      "filePath": "07-INTEGRATIONS-ECOSYSTEM.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Complete integration catalog covering 22 connectors across seven infrastructure layers: Layer 1 Network Security (Zscaler, Palo Alto Prisma, Netskope, Cisco Umbrella, Cloudflare Gateway, Forcepoint), Layer 2 Identity/Access (Okta, Azure AD), Layer 3 Productivity Suites (Google Workspace, Microsoft 365), Layer 4 Endpoints (CrowdStrike, SentinelOne), Layer 5 Enterprise Apps (Slack, Teams, Salesforce, Workday, Jira), Layer 6 Observability/SIEM (Splunk, Datadog), Layer 7 AI Platforms (OpenAI, Anthropic). Integration philosophy (three rules), connector pull-through as sales channels, deployment by stack template, and connector expansion roadmap.",
+      "tags": [
+        "integrations",
+        "ecosystem",
+        "connectors",
+        "zscaler",
+        "palo-alto",
+        "netskope",
+        "okta",
+        "azure-ad",
+        "slack",
+        "microsoft-365",
+        "google-workspace",
+        "salesforce",
+        "splunk",
+        "openai",
+        "anthropic"
+      ],
+      "complexity": "moderate",
+      "sectionCount": 13,
+      "totalLines": 164,
+      "name": "07-INTEGRATIONS-ECOSYSTEM.md"
+    },
+    {
+      "id": "document:08-MARKET-THESIS.md",
+      "type": "document",
+      "label": "08 — Market Thesis",
+      "filePath": "08-MARKET-THESIS.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Strategic market thesis with supporting numbers ($2.5B enterprise AI spend 2026, 50% shadow AI usage, 200+ tools per enterprise, 95% pilot failure rate). Diagnosis: the problem is behavior not technology. Five thesis pillars: (1) Workforce-First Beats Agent-First — risk aggregation argument and why agent-first strategies fail; (2) Network-Layer Beats SDK-First — coverage and deployment advantages; (3) The Measurement Moat — causal attribution creates compounding data advantage; (4) The Data Network Effect — cross-company intelligence; (5) Three Converging Waves — enterprise AI mandates, security infrastructure, professional intelligence data. Five-year vision and five explicit bets (what has to be true).",
+      "tags": [
+        "market-thesis",
+        "strategy",
+        "workforce-first",
+        "network-layer",
+        "measurement-moat",
+        "data-network-effect",
+        "market-size",
+        "ai-adoption",
+        "competitive-strategy"
+      ],
+      "complexity": "moderate",
+      "sectionCount": 14,
+      "totalLines": 173,
+      "name": "08-MARKET-THESIS.md"
+    },
+    {
+      "id": "document:09-GO-TO-MARKET.md",
+      "type": "document",
+      "label": "09 — Go-to-Market",
+      "filePath": "09-GO-TO-MARKET.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Detailed go-to-market playbook. Four ICPs with buyer role, pain point, trigger event, and motion: Startup COO/CTO, Mid-Market CHRO, Enterprise CIO/CDO, Regulated Vertical CISO/CCO. Four deployment templates: Self-Serve (≤200 employees), Mid-Market Pilot, Enterprise Full Deployment, Regulated Vertical Onboarding. Sales motion stages from Discovery/Demo through Board-Ready. Channels table (direct, PLG, partnerships, marketplace, events). Content engine with four pillars. 2026 event calendar. Sales enablement must-have demos. Renewal and expansion levers. Customer success posture.",
+      "tags": [
+        "go-to-market",
+        "icp",
+        "sales-motion",
+        "deployment",
+        "channels",
+        "content-marketing",
+        "partnerships",
+        "customer-success",
+        "plg",
+        "enterprise-sales"
+      ],
+      "complexity": "complex",
+      "sectionCount": 24,
+      "totalLines": 201,
+      "name": "09-GO-TO-MARKET.md"
+    },
+    {
+      "id": "document:10-COMPETITIVE-POSITIONING.md",
+      "type": "document",
+      "label": "10 — Competitive Positioning",
+      "filePath": "10-COMPETITIVE-POSITIONING.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "summary": "Competitive analysis covering six adjacent categories, each with a detailed differentiation table: vs. AI Observability/SDK-First DevTools (coverage gap, requires code changes), vs. CASB (blocks instead of adopts, no behavioral intelligence), vs. DLP (reactive security vs. proactive adoption), vs. SaaS Management Platforms (inventory without behavior), vs. LMS/Corporate AI Training (passive content vs. real-time intervention), vs. BI Dashboards/Custom Analytics (reports without action loops). Head-to-head battle card. Five structural unfair advantages. Honest limitations. Customer quote template describing Devise in their own words.",
+      "tags": [
+        "competitive",
+        "positioning",
+        "differentiation",
+        "casb",
+        "dlp",
+        "saas-management",
+        "lms",
+        "battle-card",
+        "market-positioning"
+      ],
+      "complexity": "moderate",
+      "sectionCount": 13,
+      "totalLines": 142,
+      "name": "10-COMPETITIVE-POSITIONING.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:documents:01-EXECUTIVE-SUMMARY->02-BUSINESS-MODEL",
+      "type": "documents",
+      "source": "document:01-EXECUTIVE-SUMMARY.md",
+      "target": "document:02-BUSINESS-MODEL.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:01-EXECUTIVE-SUMMARY->08-MARKET-THESIS",
+      "type": "documents",
+      "source": "document:01-EXECUTIVE-SUMMARY.md",
+      "target": "document:08-MARKET-THESIS.md",
+      "weight": 0.6,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:01-EXECUTIVE-SUMMARY->MASTER",
+      "type": "documents",
+      "source": "document:01-EXECUTIVE-SUMMARY.md",
+      "target": "document:MASTER.md",
+      "weight": 0.5,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:02-BUSINESS-MODEL->01-EXECUTIVE-SUMMARY",
+      "type": "documents",
+      "source": "document:02-BUSINESS-MODEL.md",
+      "target": "document:01-EXECUTIVE-SUMMARY.md",
+      "weight": 0.6,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:02-BUSINESS-MODEL->05-VERTICALS",
+      "type": "documents",
+      "source": "document:02-BUSINESS-MODEL.md",
+      "target": "document:05-VERTICALS-AND-SOLUTIONS.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:02-BUSINESS-MODEL->09-GTM",
+      "type": "documents",
+      "source": "document:02-BUSINESS-MODEL.md",
+      "target": "document:09-GO-TO-MARKET.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:03-PRODUCT->04-TECH-ARCH",
+      "type": "documents",
+      "source": "document:03-PRODUCT.md",
+      "target": "document:04-TECHNOLOGY-ARCHITECTURE.md",
+      "weight": 0.9,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:03-PRODUCT->07-INTEGRATIONS",
+      "type": "documents",
+      "source": "document:03-PRODUCT.md",
+      "target": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "weight": 0.6,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:03-PRODUCT->MASTER",
+      "type": "documents",
+      "source": "document:03-PRODUCT.md",
+      "target": "document:MASTER.md",
+      "weight": 0.5,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:04-TECH-ARCH->03-PRODUCT",
+      "type": "documents",
+      "source": "document:04-TECHNOLOGY-ARCHITECTURE.md",
+      "target": "document:03-PRODUCT.md",
+      "weight": 0.9,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:04-TECH-ARCH->07-INTEGRATIONS",
+      "type": "documents",
+      "source": "document:04-TECHNOLOGY-ARCHITECTURE.md",
+      "target": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:04-TECH-ARCH->06-SECURITY",
+      "type": "documents",
+      "source": "document:04-TECHNOLOGY-ARCHITECTURE.md",
+      "target": "document:06-SECURITY-COMPLIANCE.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:05-VERTICALS->02-BUSINESS-MODEL",
+      "type": "documents",
+      "source": "document:05-VERTICALS-AND-SOLUTIONS.md",
+      "target": "document:02-BUSINESS-MODEL.md",
+      "weight": 0.6,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:05-VERTICALS->06-SECURITY",
+      "type": "documents",
+      "source": "document:05-VERTICALS-AND-SOLUTIONS.md",
+      "target": "document:06-SECURITY-COMPLIANCE.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:05-VERTICALS->09-GTM",
+      "type": "documents",
+      "source": "document:05-VERTICALS-AND-SOLUTIONS.md",
+      "target": "document:09-GO-TO-MARKET.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:06-SECURITY->04-TECH-ARCH",
+      "type": "documents",
+      "source": "document:06-SECURITY-COMPLIANCE.md",
+      "target": "document:04-TECHNOLOGY-ARCHITECTURE.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:06-SECURITY->05-VERTICALS",
+      "type": "documents",
+      "source": "document:06-SECURITY-COMPLIANCE.md",
+      "target": "document:05-VERTICALS-AND-SOLUTIONS.md",
+      "weight": 0.6,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:06-SECURITY->07-INTEGRATIONS",
+      "type": "documents",
+      "source": "document:06-SECURITY-COMPLIANCE.md",
+      "target": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "weight": 0.6,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:07-INTEGRATIONS->04-TECH-ARCH",
+      "type": "documents",
+      "source": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "target": "document:04-TECHNOLOGY-ARCHITECTURE.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:07-INTEGRATIONS->06-SECURITY",
+      "type": "documents",
+      "source": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "target": "document:06-SECURITY-COMPLIANCE.md",
+      "weight": 0.6,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:07-INTEGRATIONS->09-GTM",
+      "type": "documents",
+      "source": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "target": "document:09-GO-TO-MARKET.md",
+      "weight": 0.5,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:08-MARKET-THESIS->03-PRODUCT",
+      "type": "documents",
+      "source": "document:08-MARKET-THESIS.md",
+      "target": "document:03-PRODUCT.md",
+      "weight": 0.6,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:08-MARKET-THESIS->04-TECH-ARCH",
+      "type": "documents",
+      "source": "document:08-MARKET-THESIS.md",
+      "target": "document:04-TECHNOLOGY-ARCHITECTURE.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:08-MARKET-THESIS->10-COMPETITIVE",
+      "type": "documents",
+      "source": "document:08-MARKET-THESIS.md",
+      "target": "document:10-COMPETITIVE-POSITIONING.md",
+      "weight": 0.8,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:09-GTM->02-BUSINESS-MODEL",
+      "type": "documents",
+      "source": "document:09-GO-TO-MARKET.md",
+      "target": "document:02-BUSINESS-MODEL.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:09-GTM->05-VERTICALS",
+      "type": "documents",
+      "source": "document:09-GO-TO-MARKET.md",
+      "target": "document:05-VERTICALS-AND-SOLUTIONS.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:09-GTM->10-COMPETITIVE",
+      "type": "documents",
+      "source": "document:09-GO-TO-MARKET.md",
+      "target": "document:10-COMPETITIVE-POSITIONING.md",
+      "weight": 0.7,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:10-COMPETITIVE->08-MARKET-THESIS",
+      "type": "documents",
+      "source": "document:10-COMPETITIVE-POSITIONING.md",
+      "target": "document:08-MARKET-THESIS.md",
+      "weight": 0.8,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:10-COMPETITIVE->03-PRODUCT",
+      "type": "documents",
+      "source": "document:10-COMPETITIVE-POSITIONING.md",
+      "target": "document:03-PRODUCT.md",
+      "weight": 0.6,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:10-COMPETITIVE->MASTER",
+      "type": "documents",
+      "source": "document:10-COMPETITIVE-POSITIONING.md",
+      "target": "document:MASTER.md",
+      "weight": 0.5,
+      "label": "see also",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->01-EXECUTIVE-SUMMARY",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:01-EXECUTIVE-SUMMARY.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->02-BUSINESS-MODEL",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:02-BUSINESS-MODEL.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->03-PRODUCT",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:03-PRODUCT.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->04-TECH-ARCH",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:04-TECHNOLOGY-ARCHITECTURE.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->05-VERTICALS",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:05-VERTICALS-AND-SOLUTIONS.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->06-SECURITY",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:06-SECURITY-COMPLIANCE.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->07-INTEGRATIONS",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->08-MARKET-THESIS",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:08-MARKET-THESIS.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->09-GTM",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:09-GO-TO-MARKET.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:documents:MASTER->10-COMPETITIVE",
+      "type": "documents",
+      "source": "document:MASTER.md",
+      "target": "document:10-COMPETITIVE-POSITIONING.md",
+      "weight": 0.8,
+      "label": "references",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:README->MASTER",
+      "type": "related",
+      "source": "document:README.md",
+      "target": "document:MASTER.md",
+      "weight": 0.8,
+      "label": "indexes",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:README->01-EXECUTIVE-SUMMARY",
+      "type": "related",
+      "source": "document:README.md",
+      "target": "document:01-EXECUTIVE-SUMMARY.md",
+      "weight": 0.6,
+      "label": "indexes",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:01-EXECUTIVE-SUMMARY->03-PRODUCT",
+      "type": "related",
+      "source": "document:01-EXECUTIVE-SUMMARY.md",
+      "target": "document:03-PRODUCT.md",
+      "weight": 0.6,
+      "label": "product overview in exec summary",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:01-EXECUTIVE-SUMMARY->05-VERTICALS",
+      "type": "related",
+      "source": "document:01-EXECUTIVE-SUMMARY.md",
+      "target": "document:05-VERTICALS-AND-SOLUTIONS.md",
+      "weight": 0.5,
+      "label": "vertical segments mentioned",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:02-BUSINESS-MODEL->07-INTEGRATIONS",
+      "type": "related",
+      "source": "document:02-BUSINESS-MODEL.md",
+      "target": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "weight": 0.5,
+      "label": "integrations drive expansion revenue",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:03-PRODUCT->06-SECURITY",
+      "type": "related",
+      "source": "document:03-PRODUCT.md",
+      "target": "document:06-SECURITY-COMPLIANCE.md",
+      "weight": 0.6,
+      "label": "product trust layer",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:08-MARKET-THESIS->09-GTM",
+      "type": "related",
+      "source": "document:08-MARKET-THESIS.md",
+      "target": "document:09-GO-TO-MARKET.md",
+      "weight": 0.7,
+      "label": "thesis drives GTM motion",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:09-GTM->06-SECURITY",
+      "type": "related",
+      "source": "document:09-GO-TO-MARKET.md",
+      "target": "document:06-SECURITY-COMPLIANCE.md",
+      "weight": 0.5,
+      "label": "regulated vertical sales requires security docs",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:10-COMPETITIVE->07-INTEGRATIONS",
+      "type": "related",
+      "source": "document:10-COMPETITIVE-POSITIONING.md",
+      "target": "document:07-INTEGRATIONS-ECOSYSTEM.md",
+      "weight": 0.5,
+      "label": "integrations cited as differentiator vs competitors",
+      "direction": "forward"
+    },
+    {
+      "id": "edge:related:08-MARKET-THESIS->01-EXECUTIVE-SUMMARY",
+      "type": "related",
+      "source": "document:08-MARKET-THESIS.md",
+      "target": "document:01-EXECUTIVE-SUMMARY.md",
+      "weight": 0.6,
+      "label": "market numbers underpin executive pitch",
+      "direction": "forward"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:navigation",
+      "name": "Navigation & Reference",
+      "description": "Hub documents that index the full knowledge base and provide complete single-document overviews of the Devise platform for any audience.",
+      "nodeIds": [
+        "document:README.md",
+        "document:MASTER.md"
+      ]
+    },
+    {
+      "id": "layer:strategy",
+      "name": "Strategy & Market",
+      "description": "Strategic documents covering market thesis, investor pitch, competitive positioning, and the five-pillar argument for why Devise wins the AI adoption category.",
+      "nodeIds": [
+        "document:01-EXECUTIVE-SUMMARY.md",
+        "document:08-MARKET-THESIS.md",
+        "document:10-COMPETITIVE-POSITIONING.md"
+      ]
+    },
+    {
+      "id": "layer:product-technology",
+      "name": "Product & Technology",
+      "description": "Technical and product documents describing the closed-loop platform architecture, four-phase implementation, 22 integrations across 7 infrastructure layers, and security/compliance posture.",
+      "nodeIds": [
+        "document:03-PRODUCT.md",
+        "document:04-TECHNOLOGY-ARCHITECTURE.md",
+        "document:06-SECURITY-COMPLIANCE.md",
+        "document:07-INTEGRATIONS-ECOSYSTEM.md"
+      ]
+    },
+    {
+      "id": "layer:commercial",
+      "name": "Commercial & Go-to-Market",
+      "description": "Revenue-facing documents covering pricing model, ROI tables, six vertical segment playbooks, ICP definitions, sales motion stages, and channel strategy for bringing Devise to market.",
+      "nodeIds": [
+        "document:02-BUSINESS-MODEL.md",
+        "document:05-VERTICALS-AND-SOLUTIONS.md",
+        "document:09-GO-TO-MARKET.md"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Where to Start",
+      "description": "README.md is the navigation layer — it tells you what Devise is in one sentence and maps all 10 topic documents to four reading paths (investor, buyer, engineer, sales). Start here to calibrate your lens before diving into any specific area.",
+      "nodeIds": [
+        "document:README.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "The Full Platform in One Document",
+      "description": "MASTER.md is the hub document that covers the entire Devise platform end-to-end: the $2.5B AI spend problem, the three-phase closed loop (Understand→Act→Quantify), all four intervention types, six verticals, pricing, security posture, and the data network effect. Reading this first gives you a complete mental model before the specialist documents add depth.",
+      "nodeIds": [
+        "document:MASTER.md"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "The Market Problem & Investment Case",
+      "description": "01-EXECUTIVE-SUMMARY.md frames the market reality that makes Devise necessary: $2.5B in enterprise AI spend, 50% shadow AI usage, and a 95% pilot failure rate. It then shows traction proof points (1,247 tools detected, 31%→61% adoption lift, $128K waste found in a typical org) and explains the five structural competitive advantages. This is the 'why now, why Devise' document.",
+      "nodeIds": [
+        "document:01-EXECUTIVE-SUMMARY.md"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Why the Market Is Wrong — Strategic Thesis",
+      "description": "08-MARKET-THESIS.md builds the intellectual case for Devise's category with five pillars: (1) Workforce-First Beats Agent-First — deploying AI to people before deploying agents reduces risk while building the skills agents eventually rely on; (2) Network-Layer Beats SDK — seeing all 6,500+ AI tools without code changes is structurally better than SDK instrumentation; (3) The Measurement Moat — causal attribution data compounds over time; (4) Data Network Effect — cross-company intelligence improves with scale; (5) Three Converging Waves — enterprise mandates, security infrastructure, and professional intelligence are all peaking simultaneously.",
+      "nodeIds": [
+        "document:08-MARKET-THESIS.md"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "How the Product Works",
+      "description": "03-PRODUCT.md describes the closed-loop platform in detail: Phase 1 Understand uses network-layer detection and Professional Intelligence (800M profiles) to map every AI tool your team uses and score opportunity gaps; Phase 2 Act deploys four intervention types through The Sidekick (Tool Steering, Workflow Discovery, Personalized Coaching, Friction Detection); Phase 3 Quantify closes the loop with five salary-calibrated metrics proving dollar ROI. The compounding flywheel shows how each loop makes the next intervention more accurate.",
+      "nodeIds": [
+        "document:03-PRODUCT.md"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "How It's Built — Technical Architecture",
+      "description": "04-TECHNOLOGY-ARCHITECTURE.md explains the four implementation phases: connectors (identity providers, network/security infrastructure like Zscaler and Palo Alto, business systems, lightweight agent), behavioral signals (network-layer detection, team mapping, jobs-to-be-done inference), the Sidekick act layer, and the measurement loop. A comparison table shows exactly why network-layer detection covers 6,500+ tools while SDK-first approaches require per-tool code changes — this is the core technical moat.",
+      "nodeIds": [
+        "document:04-TECHNOLOGY-ARCHITECTURE.md"
+      ]
+    },
+    {
+      "order": 7,
+      "title": "The Integration Ecosystem",
+      "description": "07-INTEGRATIONS-ECOSYSTEM.md catalogs all 22 connectors across seven infrastructure layers: Network Security (Zscaler, Palo Alto, Netskope), Identity (Okta, Azure AD), Productivity (Google Workspace, Microsoft 365), Endpoints (CrowdStrike, SentinelOne), Enterprise Apps (Slack, Teams, Salesforce, Workday, Jira), Observability (Splunk, Datadog), and AI Platforms (OpenAI, Anthropic). The integration philosophy section explains why Devise reads from existing infrastructure rather than adding new sensors — there is no new attack surface.",
+      "nodeIds": [
+        "document:07-INTEGRATIONS-ECOSYSTEM.md"
+      ]
+    },
+    {
+      "order": 8,
+      "title": "Trust, Security & Compliance",
+      "description": "06-SECURITY-COMPLIANCE.md addresses the CISO conversation: SOC 2 Type I, HIPAA, and GDPR certifications, TLS 1.3 and AES-256-GCM encryption, BYOK, zero-trust architecture with SAML 2.0/SCIM, and an AI standards alignment table covering OWASP LLM Top 10, NIST AI RMF, ISO 42001, MITRE ATLAS, and the EU AI Act. The 'What Devise Will Never Do' section is the most important page in regulated-sector sales cycles — absolute commitments about data use.",
+      "nodeIds": [
+        "document:06-SECURITY-COMPLIANCE.md"
+      ]
+    },
+    {
+      "order": 9,
+      "title": "Vertical Playbooks",
+      "description": "05-VERTICALS-AND-SOLUTIONS.md translates the platform into six segment-specific stories, each with a distinct buyer, deployment path, and ROI table: Startups (60-second install, 63× ROI), Enterprise (90-day board-ready, 16× ROI, sample real intervention table), Financial Services (SEC/FINRA audit trail), Healthcare (PHI incident flow, two-mode operation), Technology (license overlap detection, top-10% propagation), and Professional Services (ethical walls, billable-hour productivity). These are the source documents for segment-specific sales decks.",
+      "nodeIds": [
+        "document:05-VERTICALS-AND-SOLUTIONS.md"
+      ]
+    },
+    {
+      "order": 10,
+      "title": "The Business Model",
+      "description": "02-BUSINESS-MODEL.md explains the two pricing tiers in detail: $9/user/month self-serve for 20–200 employees, and custom enterprise pricing for 200+ with dedicated CSM, SCIM provisioning, and custom SLAs. The ROI section shows the math: a 50-person startup spending $450/month generates $28,600/month in recovered value (63×); a 5,000-person enterprise at $540K/year generates $8.7M in savings (16×). Four revenue streams (platform, professional services, API licensing, data intelligence) and a seven-step customer lifecycle complete the model.",
+      "nodeIds": [
+        "document:02-BUSINESS-MODEL.md"
+      ]
+    },
+    {
+      "order": 11,
+      "title": "Go-to-Market Playbook",
+      "description": "09-GO-TO-MARKET.md is the sales and marketing operating manual: four ICPs with buyer role, pain point, trigger event, and motion (Startup COO, Mid-Market CHRO, Enterprise CIO, Regulated CISO); four deployment templates from self-serve to regulated onboarding; the full sales motion from Discovery/Demo through Board-Ready; a channels table covering PLG, direct, partnerships, and marketplace; and the content engine with four pillars generating demand. The sales enablement section lists the three must-have live demos to convert a skeptical CISO.",
+      "nodeIds": [
+        "document:09-GO-TO-MARKET.md"
+      ]
+    },
+    {
+      "order": 12,
+      "title": "How Devise Wins Competitive Deals",
+      "description": "10-COMPETITIVE-POSITIONING.md addresses the six adjacent categories that come up in every deal: AI Observability tools (SDK coverage gap), CASB (blocks instead of adopts), DLP (reactive security vs. proactive behavior change), SaaS Management (inventory without behavior), LMS (passive content vs. real-time intervention), and BI Dashboards (reports without action loops). The Head-to-Head Battle Card gives sales reps a one-page response to any comparison. The 'What Devise Is Honest About' section pre-empts the top three objections before the customer raises them.",
+      "nodeIds": [
+        "document:10-COMPETITIVE-POSITIONING.md"
+      ]
+    }
+  ]
+}
