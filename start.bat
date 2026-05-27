@@ -1,11 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM ===================================================================
-REM   Devise-CAD Startup Script
-REM   Launches: Frontend (React), MCP Gateway (Fastify), Desktop Agent (Python)
-REM ===================================================================
-
 title Devise-CAD Development Environment
 
 echo.
@@ -13,55 +8,84 @@ echo ========================================
 echo   Devise-CAD Development Server
 echo ========================================
 echo.
-echo Starting services:
-echo   - Frontend      (React Vite)      -> http://localhost:5173
-echo   - MCP Gateway   (Fastify)         -> http://localhost:3001
-echo   - Desktop Agent (Python Monitor)
-echo.
 
-REM Check for npm
+REM ─── Prerequisite checks ─────────────────────────────────────────────────
+
 where npm >nul 2>nul
 if %errorlevel% neq 0 (
     echo [ERROR] npm not found. Please install Node.js 18+
-    pause
-    exit /b 1
+    pause & exit /b 1
 )
 
-REM Check for Python
 where python >nul 2>nul
 if %errorlevel% neq 0 (
     echo [ERROR] Python not found. Please install Python 3.10+
-    pause
-    exit /b 1
+    pause & exit /b 1
 )
 
-REM Install / update agent Python dependencies
-echo [INFO] Installing agent dependencies...
-python -m pip install -r devise-agent\devise-eye\requirements.txt -q
+where concurrently >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [INFO] Installing concurrently globally...
+    call npm install -g concurrently --silent
+    if %errorlevel% neq 0 (
+        echo [ERROR] Failed to install concurrently.
+        pause & exit /b 1
+    )
+)
+
+REM ─── Node dependency installs ────────────────────────────────────────────
+
+if not exist "frontend\node_modules" (
+    echo [INFO] Installing frontend dependencies...
+    pushd frontend
+    call npm install --loglevel=error
+    set _ERR=!errorlevel!
+    popd
+    if !_ERR! neq 0 (
+        echo [ERROR] Frontend npm install failed.
+        pause & exit /b 1
+    )
+    echo [OK] Frontend dependencies ready.
+)
+
+if not exist "mcp-gateway\node_modules" (
+    echo [INFO] Installing MCP Gateway dependencies...
+    pushd mcp-gateway
+    call npm install --loglevel=error
+    set _ERR=!errorlevel!
+    popd
+    if !_ERR! neq 0 (
+        echo [ERROR] MCP Gateway npm install failed.
+        pause & exit /b 1
+    )
+    echo [OK] MCP Gateway dependencies ready.
+)
+
+REM ─── Python agent dependencies ───────────────────────────────────────────
+
+echo [INFO] Checking agent Python dependencies...
+python -m pip install -r "devise-agent\devise-eye\requirements.txt" --quiet
 if %errorlevel% neq 0 (
     echo [ERROR] Failed to install agent dependencies.
-    pause
-    exit /b 1
+    pause & exit /b 1
 )
 echo [OK] Agent dependencies ready.
 
-REM Check for concurrently package
-if not exist "node_modules\.bin\concurrently.cmd" (
-    echo [INFO] Installing concurrently...
-    call npm install -g concurrently
-)
+REM ─── Launch all services ─────────────────────────────────────────────────
 
-echo Starting services...
+echo.
+echo Starting services:
+echo   [FRONTEND]    React Vite   -^>  http://localhost:5173
+echo   [MCP-GATEWAY] Fastify      -^>  http://localhost:3001
+echo   [AGENT]       Python monitor
 echo.
 
-REM Start all services concurrently
-npx concurrently -k -p "[{name}]" -n "FRONTEND,MCP-GATEWAY,AGENT" -c "cyan,magenta,yellow" "cd frontend && npm run dev" "cd mcp-gateway && npx tsx server.ts" "cd devise-agent\devise-eye && python main.py"
+concurrently -k --raw -p "[{name}]" -n "FRONTEND,MCP-GATEWAY,AGENT" -c "cyan,magenta,yellow" ^
+  "cd frontend && npm run dev" ^
+  "cd mcp-gateway && npx ts-node server.ts" ^
+  "cd devise-agent/devise-eye && python main.py"
 
-if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] Failed to start services. Check the output above for details.
-    pause
-    exit /b 1
-)
-
+echo.
+echo All services stopped.
+pause
 endlocal
