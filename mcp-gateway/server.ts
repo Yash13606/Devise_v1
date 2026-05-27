@@ -19,7 +19,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 // Supabase Configuration
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+const supabase = SUPABASE_URL ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY) : null;
 
 // ---------------------------------------------------------------------------
 // Rate Limiting (Phase 4 Task)

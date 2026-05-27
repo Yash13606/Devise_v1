@@ -1,11 +1,28 @@
-"""
-Vercel ASGI entrypoint for Devise Dashboard backend.
-"""
+"""Devise Dashboard API — FastAPI backend."""
 
-import sys
-import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-# Make the backend package importable
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+app = FastAPI(title="Devise API", version="1.0.0")
 
-from backend.server import app  # noqa: F401
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/api/event")
+def get_events():
+    return {"events": []}
+
+
+@app.post("/api/event")
+def post_event(event: dict):
+    return {"status": "received"}

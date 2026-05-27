@@ -10,6 +10,8 @@ from typing import Optional
 
 import httpx
 
+from result import Ok, Err, Result
+
 logger = logging.getLogger(__name__)
 
 # DoH endpoint URLs
@@ -160,6 +162,19 @@ class DoHResolver:
             logger.debug(f"All DNS methods failed for {ip}")
 
         return hostname
+
+    @staticmethod
+    def query_os_cache(ip: str) -> Optional[str]:
+        """Delegate to DNSResolver.query_os_cache — Windows OS DNS client cache lookup."""
+        from dns_resolver import DNSResolver
+        return DNSResolver.query_os_cache(ip)
+
+    def reverse_lookup_result(self, ip: str) -> "Result[str]":
+        """Reverse DNS lookup returning a Result — mirrors DNSResolver.reverse_lookup_result."""
+        hostname = self.reverse_lookup(ip)
+        if hostname:
+            return Ok(hostname)
+        return Err(f"no_ptr:{ip}")
 
     def close(self) -> None:
         """Close the HTTP client."""
