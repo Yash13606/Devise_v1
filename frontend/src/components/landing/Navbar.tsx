@@ -209,7 +209,7 @@ export const Navbar = () => {
                 {/* LOGO */}
                 <div className="flex items-center justify-start shrink-0">
                     <Link to="/" className="flex items-center group">
-                        <img src="/src/assets/logo.svg" alt="Devise Logo" className="h-7 w-auto object-contain transition-transform duration-500 group-hover:scale-105" />
+                        <img src="/logo.svg" alt="Devise Logo" className="h-7 w-auto object-contain transition-transform duration-500 group-hover:scale-105" />
                         <span className="ml-2.5 text-lg font-bold text-[#0a0806] tracking-tight group-hover:text-[#f95001] transition-colors duration-300">Devise</span>
                     </Link>
                 </div>

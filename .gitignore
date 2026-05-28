@@ -87,3 +87,6 @@ Devise main docs/
 .agents/
 skills-lock.json
 tools/
+Docs/
+.cursor/rules/
+.github/workflows/

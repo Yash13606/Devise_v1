@@ -31,7 +31,7 @@ export function LoginPage() {
         {/* TOP LEFT RECTANGLE LOGO */}
         <div className="absolute top-0 left-0 p-8 z-10">
           <img 
-            src="/src/assets/logo.svg" 
+            src="/logo.svg" 
             alt="Devise Logo" 
             className="h-12 w-auto object-contain drop-shadow-lg" 
           />
@@ -70,7 +70,7 @@ export function LoginPage() {
         <div className="max-w-md w-full flex flex-col items-center">
           {/* MOBILE LOGO */}
           <img 
-            src="/src/assets/logo.svg" 
+            src="/logo.svg" 
             alt="Devise Logo" 
             className="h-10 w-auto object-contain mb-12" 
           />

@@ -105,7 +105,7 @@ export function MCPSidebar() {
       <div className="flex flex-col px-5 pt-6 pb-2">
         <Link to="/mcp" className="flex items-center gap-3 group">
           <img 
-            src="/src/assets/logo.svg" 
+            src="/logo.svg" 
             alt="Devise Logo" 
             className="h-8 w-auto object-contain group-hover:scale-105 transition-transform" 
           />

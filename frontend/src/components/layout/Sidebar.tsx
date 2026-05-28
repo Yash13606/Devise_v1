@@ -97,7 +97,7 @@ export function AppSidebar({ activeTab, onTabChange }: SidebarProps) {
         className="flex items-center justify-center mb-6 flex-shrink-0"
         style={{ width: 36, height: 36 }}
       >
-        <img src="/src/assets/logo.svg" alt="Devise Logo" className="w-full h-full object-contain" />
+        <img src="/logo.svg" alt="Devise Logo" className="w-full h-full object-contain" />
       </div>
 
       {/* Nav icons */}
