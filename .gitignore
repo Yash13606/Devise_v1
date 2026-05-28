@@ -76,3 +76,14 @@ external/
 .claude-flow/
 .codegraph/
 graphify-out/
+
+# ─── Large Assets & Reference Folders ──────────────────────────────────────
+refrence videos/
+launch-video/
+devise-launch-video/
+Devise-Oximy web scrape/
+Business Reference/
+Devise main docs/
+.agents/
+skills-lock.json
+tools/
