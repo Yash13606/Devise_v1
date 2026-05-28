@@ -54,7 +54,9 @@ export const LandingPage = () => {
         <div className="mt-16 max-w-5xl mx-auto relative z-10 group">
           <div className="absolute -inset-1 bg-gradient-to-r from-brand-orange to-brand-purple rounded-2xl blur opacity-10 group-hover:opacity-20 transition duration-1000" />
           <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/20">
-            <img src={heroDashboard} alt="Devise AI Tool Activity Dashboard" className="w-full" />
+            <video autoPlay loop muted playsInline className="w-full block">
+              <source src="/launch-video.mp4" type="video/mp4" />
+            </video>
           </div>
           <div className="absolute -top-4 -left-4 w-12 h-12 bg-green-700 rounded-xl shadow-heavy flex items-center justify-center text-white font-bold text-sm">XLS</div>
           <div className="absolute -top-4 -right-4 w-12 h-12 bg-blue-700 rounded-xl shadow-heavy flex items-center justify-center text-white font-bold text-sm">SAP</div>
