@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,18 +32,33 @@ import { LandingPage } from "./pages/landing/LandingPage";
 import { OversightPage } from "./pages/landing/OversightPage";
 import { PulsePage } from "./pages/landing/PulsePage";
 import { SpendPage } from "./pages/landing/SpendPage";
+import { EnginePage } from "./pages/landing/products/EnginePage";
 import { AboutPage } from "./pages/landing/AboutPage";
 import { UseCasesPage } from "./pages/landing/UseCasesPage";
 import { DemoPage } from "./pages/landing/DemoPage";
-import { FinancialServicesPage } from "./pages/landing/FinancialServicesPage";
-import { EnterprisePage } from "./pages/landing/EnterprisePage";
+import { FinancialServicesPage } from "./pages/landing/solutions/FinancialServicesPage";
+import { EnterprisePage } from "./pages/landing/solutions/EnterprisePage";
 import NotFound from "./pages/landing/NotFound";
 import { MCPRouter } from "./pages/mcp/router";
+import { TrustSecurityPage } from "./pages/landing/TrustSecurityPage";
 import { UnderstandDashboard } from "./pages/UnderstandDashboard";
+import { StartupsPage } from "./pages/landing/solutions/StartupsPage";
+import { HealthcarePage } from "./pages/landing/solutions/HealthcarePage";
+import { ProfessionalServicesPage } from "./pages/landing/solutions/ProfessionalServicesPage";
 
 type Tab = "overview" | "live-feed" | "analytics" | "devices" | "alerts" | "subscriptions" | "settings" | "team" | "firewall" | "data-risk";
 
 const queryClient = new QueryClient();
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
@@ -106,8 +121,13 @@ const AppContent = () => {
       <Route path="/product/oversight" element={<OversightPage />} />
       <Route path="/product/pulse" element={<PulsePage />} />
       <Route path="/product/spend" element={<SpendPage />} />
+      {/* Engine Route */}
+      <Route path="/product/engine" element={<EnginePage />} />
       <Route path="/solutions/financial-services" element={<FinancialServicesPage />} />
       <Route path="/solutions/enterprise" element={<EnterprisePage />} />
+      <Route path="/solutions/startups" element={<StartupsPage />} />
+      <Route path="/solutions/healthcare" element={<HealthcarePage />} />
+      <Route path="/solutions/professional-services" element={<ProfessionalServicesPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/use-cases" element={<UseCasesPage />} />
       <Route path="/demo" element={<DemoPage />} />
@@ -137,6 +157,7 @@ const AppContent = () => {
         path="/mcp/*" 
         element={user ? <MCPRouter /> : <Navigate to="/login" replace />} 
       />
+      <Route path="/trust-security" element={<TrustSecurityPage />} />
       
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />
@@ -147,6 +168,7 @@ const AppContent = () => {
 const App = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />

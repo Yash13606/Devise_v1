@@ -1,0 +1,33 @@
+:root {
+  /* Brand colors */
+  --brand-primary: hsl(16, 100%, 54%); /* orange */
+  --brand-primary-foreground: hsl(0, 0%, 100%);
+  --brand-secondary: hsl(220, 14%, 96%);
+  --brand-secondary-foreground: hsl(240, 6%, 20%);
+  --brand-accent: hsl(280, 65%, 60%);
+  --brand-accent-foreground: hsl(0, 0%, 100%);
+  /* Trust & Security card background */
+  --trust-card-bg: hsl(220, 14%, 12%);
+  --brand-success: hsl(142, 71%, 45%);
+  --brand-warning: hsl(38, 92%, 50%);
+  --brand-danger: hsl(0, 84%, 60%);
+
+  /* Typography */
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Border radius */
+  --radius: 0.75rem;
+}
+
+/* Light/Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 220 14% 10%;
+    --foreground: 240 10% 90%;
+    --card: 0 0% 15%;
+    --card-foreground: 240 10% 90%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 240 10% 90%;
+  }
+}

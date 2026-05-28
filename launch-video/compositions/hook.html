@@ -1,0 +1,199 @@
+<template id="hook-template">
+  <div
+    data-composition-id="hook"
+    data-width="1920"
+    data-height="1080"
+    data-start="0"
+    data-duration="4"
+  >
+    <div class="hook-bg"></div>
+    <div class="hook-grain"></div>
+
+    <!-- Faint grid -->
+    <svg class="hook-grid" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="hook-grid-pat" width="80" height="80" patternUnits="userSpaceOnUse">
+          <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(240,78,35,0.06)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect width="1920" height="1080" fill="url(#hook-grid-pat)"/>
+    </svg>
+
+    <!-- Glowing orb -->
+    <div class="hook-orb"></div>
+
+    <!-- Stat 1: $2.5B -->
+    <div class="stat stat-1">
+      <div class="stat-prefix">$</div>
+      <div class="stat-num" id="stat1-num">2.5</div>
+      <div class="stat-unit">Billion</div>
+    </div>
+    <div class="caption cap-1">Spent on AI in 2026.</div>
+
+    <!-- Stat 2: 5% -->
+    <div class="stat stat-2">
+      <div class="stat-num" id="stat2-num">5</div>
+      <div class="stat-unit">%</div>
+    </div>
+    <div class="caption cap-2">of employees got value from it.</div>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500&display=swap");
+
+      [data-composition-id="hook"] {
+        width: 1920px;
+        height: 1080px;
+        position: relative;
+        overflow: hidden;
+        background: #0A0805;
+        color: #F5EDE0;
+      }
+
+      [data-composition-id="hook"] .hook-bg {
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(ellipse at 30% 40%, rgba(255,102,0,0.10) 0%, transparent 50%),
+          radial-gradient(ellipse at 70% 70%, rgba(255,153,102,0.06) 0%, transparent 55%),
+          linear-gradient(180deg, #0A0805 0%, #14100A 100%);
+      }
+      [data-composition-id="hook"] .hook-grid {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        opacity: 0;
+      }
+      [data-composition-id="hook"] .hook-grain {
+        position: absolute; inset: 0;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.92 0 0 0 0 0.85 0 0 0 0.06 0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.4'/></svg>");
+        pointer-events: none; mix-blend-mode: overlay;
+      }
+      [data-composition-id="hook"] .hook-orb {
+        position: absolute;
+        left: 50%; top: 50%;
+        width: 1200px; height: 1200px;
+        margin: -600px 0 0 -600px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 50%, rgba(255,102,0,0.18) 0%, rgba(255,102,0,0.04) 35%, transparent 60%);
+        filter: blur(40px);
+        opacity: 0;
+      }
+
+      [data-composition-id="hook"] .stat {
+        position: absolute;
+        left: 50%; top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex; align-items: baseline;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 800;
+        color: #F5EDE0;
+        opacity: 0;
+        will-change: transform, opacity;
+        letter-spacing: -0.04em;
+      }
+      [data-composition-id="hook"] .stat-prefix {
+        font-size: 180px;
+        line-height: 1;
+        color: #FF6600;
+        margin-right: 8px;
+      }
+      [data-composition-id="hook"] .stat-num {
+        font-size: 320px;
+        line-height: 1;
+        background: linear-gradient(180deg, #FFD9B3 0%, #FF9966 40%, #FF6600 80%, #FF0000 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-feature-settings: "tnum";
+      }
+      [data-composition-id="hook"] .stat-unit {
+        font-size: 120px;
+        line-height: 1;
+        color: #F5EDE0;
+        margin-left: 18px;
+        font-weight: 500;
+      }
+      [data-composition-id="hook"] .stat-2 .stat-num {
+        font-size: 380px;
+      }
+      [data-composition-id="hook"] .stat-2 .stat-unit {
+        font-size: 200px;
+        color: #FF6600;
+        font-weight: 800;
+        margin-left: 6px;
+      }
+
+      [data-composition-id="hook"] .caption {
+        position: absolute;
+        left: 50%;
+        bottom: 200px;
+        transform: translateX(-50%);
+        font-family: "Instrument Serif", serif;
+        font-style: italic;
+        font-size: 56px;
+        color: rgba(245,237,224,0.85);
+        letter-spacing: -0.01em;
+        opacity: 0;
+        white-space: nowrap;
+      }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        const root = document.querySelector('[data-composition-id="hook"]');
+
+        const grid = root.querySelector(".hook-grid");
+        const orb = root.querySelector(".hook-orb");
+        const stat1 = root.querySelector(".stat-1");
+        const stat2 = root.querySelector(".stat-2");
+        const cap1 = root.querySelector(".cap-1");
+        const cap2 = root.querySelector(".cap-2");
+
+        // Set initial positions
+        gsap.set([stat1, stat2], { scale: 0.85, y: 30 });
+        gsap.set([cap1, cap2], { y: 24 });
+
+        // 0.0–0.3 : grid + orb wake up
+        tl.to(grid, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0);
+        tl.to(orb, { opacity: 1, duration: 0.8, ease: "power2.out" }, 0);
+
+        // 0.2–1.6 : Stat 1 slams in
+        tl.to(stat1, {
+          opacity: 1, scale: 1, y: 0,
+          duration: 0.6, ease: "expo.out"
+        }, 0.25);
+        tl.to(cap1, {
+          opacity: 1, y: 0,
+          duration: 0.5, ease: "power2.out"
+        }, 0.55);
+
+        // 1.7 : Stat 1 exits up
+        tl.to([stat1, cap1], {
+          opacity: 0, y: -40,
+          duration: 0.4, ease: "power2.in"
+        }, 1.7);
+
+        // 2.0–3.6 : Stat 2 slams in
+        tl.to(stat2, {
+          opacity: 1, scale: 1, y: 0,
+          duration: 0.55, ease: "expo.out"
+        }, 2.05);
+        tl.to(cap2, {
+          opacity: 1, y: 0,
+          duration: 0.5, ease: "power2.out"
+        }, 2.35);
+
+        // 3.5 : push orb (impact)
+        tl.to(orb, { scale: 1.1, opacity: 1.2, duration: 0.35, ease: "power2.out" }, 3.4);
+
+        // 3.7–4.0 : everything fades for transition
+        tl.to([stat2, cap2, orb, grid], {
+          opacity: 0,
+          duration: 0.35, ease: "power2.in"
+        }, 3.65);
+
+        window.__timelines["hook"] = tl;
+      })();
+    </script>
+  </div>
+</template>

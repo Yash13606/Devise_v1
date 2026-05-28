@@ -14,9 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-body)", "Inter", "sans-serif"],
-        display: ["var(--font-display)", "Plus Jakarta Sans", "sans-serif"],
-        body: ["var(--font-body)", "Inter", "sans-serif"],
+        sans: ["var(--font-body)", "Manrope", "sans-serif"],
+        display: ["var(--font-display)", "Cormorant Garamond", "serif"],
+        body: ["var(--font-body)", "Manrope", "sans-serif"],
       },
       colors: {
         "brand-cream": "#F5EDE0",

@@ -1,113 +1,168 @@
+import React from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
-  Eye, AlertTriangle, Settings, Map, Shield, FileText,
-  ChevronRight, ArrowRight, CheckCircle
+  ShieldAlert, Eye, Lock, FileText, ChevronRight, Activity
 } from "lucide-react";
 import { Layout } from "../../components/landing/Layout";
-import oversightDashboard from "@/assets/oversight-dashboard.png";
+
+// Animation utility
+const FADE_UP = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] } }
+};
+
+const STAGGER = {
+  hidden: { opacity: 0 },
+  visible: { transition: { staggerChildren: 0.1 } }
+};
 
 export const OversightPage = () => {
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative overflow-hidden pt-32 pb-24 px-6">
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[radial-gradient(circle,_#F04E23_0%,_transparent_70%)] opacity-[0.4] blur-3xl -z-10 pointer-events-none" />
-        <div className="absolute top-20 right-0 w-[300px] h-[300px] bg-[radial-gradient(circle,_#F04E23_0%,_transparent_70%)] opacity-[0.3] blur-3xl -z-10 pointer-events-none" />
+      <main className="bg-[#030303] min-h-screen text-gray-300 font-body selection:bg-red-500/30 overflow-hidden pt-24">
+        
+        {/* HERO SECTION */}
+        <section className="relative px-6 py-16 md:py-32 flex flex-col items-center text-center">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-red-600/15 rounded-full blur-[120px] pointer-events-none -z-10" />
+          
+          <motion.div initial="hidden" animate="visible" variants={STAGGER} className="max-w-4xl mx-auto flex flex-col items-center">
+            <motion.div variants={FADE_UP} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-400 text-xs tracking-widest uppercase font-bold mb-8">
+              <ShieldAlert size={14} /> Devise Oversight
+            </motion.div>
+            
+            <motion.h1 variants={FADE_UP} className="text-4xl md:text-7xl lg:text-8xl font-display font-bold text-white tracking-tight mb-8 leading-[1.05]">
+              Govern AI usage.<br />
+              <span className="text-red-500 italic">Before it governs you.</span>
+            </motion.h1>
+            
+            <motion.p variants={FADE_UP} className="text-xl md:text-2xl text-gray-400 max-w-2xl mb-12 font-light">
+              Detect shadow AI, enforce granular policies, and map your entire organizational risk surface in real time.
+            </motion.p>
+            
+            <motion.div variants={FADE_UP} className="flex flex-col sm:flex-row items-center gap-6">
+              <Link 
+                to="/demo" 
+                className="bg-red-600 text-white px-8 py-4 rounded-full font-bold text-lg transition-transform active:scale-95 hover:bg-red-500 shadow-[0_0_30px_-5px_rgba(220,38,38,0.4)]"
+                style={{ transitionDuration: '160ms', transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }}
+              >
+                Book a Demo
+              </Link>
+            </motion.div>
+          </motion.div>
 
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-block px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest mb-6 bg-orange-50 text-brand-orange">
-            Devise Oversight
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-brand-dark leading-tight">
-            AI Governance & Risk Intelligence
-          </h1>
-          <p className="text-xl text-brand-gray mt-4 max-w-2xl mx-auto">
-            Surface policy exposure and compliance gaps using real usage data.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center mt-8">
-            <Link to="/demo" className="bg-brand-orange text-white rounded-full px-6 py-2.5 font-medium hover:bg-orange-600 transition-colors shadow-lg shadow-brand-orange/20">
-              Book a Demo
-            </Link>
-            <button className="border border-brand-dark text-brand-dark rounded-full px-6 py-2.5 font-medium hover:bg-brand-dark hover:text-white transition-colors">
-              See all features
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-16 max-w-5xl mx-auto relative z-10">
-          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <img src={oversightDashboard} alt="Devise Oversight Dashboard" className="w-full" />
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-24 px-6 max-w-7xl mx-auto">
-        <div className="text-xs font-semibold uppercase tracking-widest text-brand-orange mb-4 text-center">Features</div>
-        <h2 className="text-4xl font-bold text-brand-dark text-center mb-12">Complete governance toolkit</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { icon: <Eye />, title: "Real-time AI Visibility", desc: "See every AI tool used across your entire organization in real time." },
-            { icon: <AlertTriangle />, title: "Shadow AI Detection", desc: "Automatically detect unauthorized AI tools before they cause incidents." },
-            { icon: <Settings />, title: "Policy Rule Engine", desc: "Create and enforce granular AI usage policies by team, tool, or data type." },
-            { icon: <Map />, title: "Framework Mapping", desc: "Map findings to OWASP LLM Top 10, NIST AI RMF, ISO 42001, and EU AI Act." },
-            { icon: <Shield />, title: "Data Sensitivity Flagging", desc: "Detect when sensitive data is shared with AI tools and alert instantly." },
-            { icon: <FileText />, title: "Defensible Audit Trail", desc: "Complete, tamper-proof logs for regulatory review and compliance audits." },
-          ].map((f, i) => (
-            <div key={i} className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="text-brand-orange mb-4">{f.icon}</div>
-              <h4 className="font-bold text-brand-dark mb-2">{f.title}</h4>
-              <p className="text-brand-gray text-sm">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 3-Step Flow */}
-      <section className="py-16 px-6 max-w-3xl mx-auto">
-        <div className="flex flex-col md:flex-row items-center gap-4 justify-center">
-          {["Detect", "Classify", "Alert"].map((step, i) => (
-            <div key={step} className="flex items-center gap-4">
-              <div className="bg-white rounded-2xl shadow-lg px-8 py-6 text-center">
-                <div className="text-brand-orange font-bold text-lg">{step}</div>
+          {/* MOCK UI HERO */}
+          <motion.div 
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1], delay: 0.2 }}
+            className="w-full max-w-5xl mx-auto mt-24 bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 shadow-2xl relative overflow-hidden text-left"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
+                <div className="w-3 h-3 rounded-full bg-orange-500/20 border border-orange-500/50" />
+                <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
               </div>
-              {i < 2 && <ChevronRight className="text-brand-gray hidden md:block" size={24} />}
+              <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Global Risk Feed</div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Compliance Frameworks */}
-      <section className="py-24 px-6 max-w-5xl mx-auto">
-        <h2 className="text-3xl font-bold text-brand-dark text-center mb-12">Compliance Frameworks Supported</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {["OWASP LLM Top 10", "NIST AI RMF", "ISO 42001", "EU AI Act"].map((fw) => (
-            <div key={fw} className="bg-white rounded-2xl shadow-lg p-6 text-center">
-              <Shield className="text-brand-orange mx-auto mb-3" size={24} />
-              <div className="font-bold text-brand-dark text-sm">{fw}</div>
+            
+            <div className="space-y-4 font-mono text-sm">
+              <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-red-500/5 rounded-lg border border-red-500/10">
+                <div className="flex items-start gap-4">
+                  <Activity className="text-red-500 mt-0.5" size={16} />
+                  <div>
+                    <div className="text-white font-bold">PII Leak Detected</div>
+                    <div className="text-gray-400 text-xs mt-1">Source: ChatGPT Web UI &middot; User: marketing_lead@corp.com</div>
+                  </div>
+                </div>
+                <div className="mt-4 md:mt-0 flex gap-4 text-xs font-bold uppercase tracking-widest">
+                  <span className="text-red-500">Critical</span>
+                  <span className="text-gray-500">Just now</span>
+                </div>
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-orange-500/5 rounded-lg border border-orange-500/10">
+                <div className="flex items-start gap-4">
+                  <Lock className="text-orange-500 mt-0.5" size={16} />
+                  <div>
+                    <div className="text-white font-bold">Unauthorized Tool Access</div>
+                    <div className="text-gray-400 text-xs mt-1">App: Perplexity AI &middot; Group: Engineering</div>
+                  </div>
+                </div>
+                <div className="mt-4 md:mt-0 flex gap-4 text-xs font-bold uppercase tracking-widest">
+                  <span className="text-orange-500">Warning</span>
+                  <span className="text-gray-500">2m ago</span>
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0A0A0A] to-transparent pointer-events-none" />
+          </motion.div>
+        </section>
 
-      {/* Who Uses It */}
-      <section className="py-16 px-6 max-w-4xl mx-auto">
-        <h3 className="text-xl font-bold text-brand-dark text-center mb-8">Who uses Oversight</h3>
-        <div className="flex flex-wrap gap-3 justify-center">
-          {["CISO", "Compliance Officer", "Legal", "Security Team", "Internal Audit"].map((role) => (
-            <span key={role} className="bg-white rounded-full px-5 py-2 text-sm shadow-soft text-brand-dark font-medium">{role}</span>
-          ))}
-        </div>
-      </section>
+        {/* BENTO GRID */}
+        <section className="py-16 md:py-32 px-6 max-w-7xl mx-auto">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={STAGGER} className="mb-20">
+            <h2 className="text-[10px] font-bold tracking-widest text-red-500 uppercase mb-4">The Platform</h2>
+            <h3 className="text-3xl md:text-6xl font-display font-bold text-white tracking-tight">Absolute visibility.<br />Zero blind spots.</h3>
+          </motion.div>
 
-      {/* Dark CTA */}
-      <section className="mx-6 md:mx-auto max-w-5xl rounded-2xl bg-brand-navy text-white py-16 px-8 mb-24 text-center">
-        <h2 className="text-3xl font-bold mb-4">Ready to govern your AI landscape?</h2>
-        <p className="text-gray-400 mb-8">See Devise Oversight in action with a personalized demo.</p>
-        <Link to="/demo" className="bg-brand-orange text-white rounded-full px-8 py-3 font-semibold hover:bg-orange-600 transition-colors shadow-lg shadow-brand-orange/20 inline-block">
-          Book a Demo
-        </Link>
-      </section>
+          <div className="grid md:grid-cols-3 gap-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }} className="md:col-span-2 bg-[#0A0A0A] border border-white/10 rounded-[2rem] p-8 md:p-12 flex flex-col justify-between group overflow-hidden relative">
+              <div className="relative z-10 max-w-md">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-8"><Eye className="text-red-500" /></div>
+                <h4 className="text-3xl font-display font-bold text-white mb-4">Real-time Shadow AI Detection</h4>
+                <p className="text-gray-400">Instantly map every AI tool being used across your network. No agents required. Find the tools your team bought with corporate cards before they become a liability.</p>
+              </div>
+              <div className="mt-12 -mx-12 -mb-12 opacity-50 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="h-48 w-full bg-gradient-to-t from-red-500/20 to-transparent flex items-end justify-around pb-4 px-12">
+                   {[40, 70, 45, 90, 65, 80, 50, 100, 60, 85].map((h, i) => (
+                     <div key={i} className="w-8 bg-red-500/30 rounded-t-md" style={{ height: `${h}%` }} />
+                   ))}
+                </div>
+              </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }} className="bg-white text-[#0A0A0A] rounded-[2rem] p-8 flex flex-col">
+              <div className="w-12 h-12 rounded-full bg-black/5 flex items-center justify-center mb-8"><Lock className="text-black" /></div>
+              <h4 className="text-2xl font-display font-bold mb-4">Granular Policy Enforcement</h4>
+              <p className="text-gray-600 text-sm mb-8">Block non-compliant tools, restrict sensitive data inputs, and enforce guardrails at the network level.</p>
+              <div className="mt-auto space-y-2 font-mono text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                <div className="flex justify-between items-center pb-2 border-b border-black/10"><span>Rule: ChatGPT Web</span><span className="text-red-500">Blocked</span></div>
+                <div className="flex justify-between items-center pb-2 border-b border-black/10"><span>Rule: GitHub Copilot</span><span className="text-green-600">Allowed</span></div>
+                <div className="flex justify-between items-center"><span>Rule: PII Uploads</span><span className="text-red-500">Blocked</span></div>
+              </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2, ease: [0.23, 1, 0.32, 1] }} className="bg-[#0A0A0A] border border-white/10 rounded-[2rem] p-8">
+              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-8"><ShieldAlert className="text-white" /></div>
+              <h4 className="text-2xl font-display font-bold text-white mb-4">Framework Mapping</h4>
+              <p className="text-gray-400 text-sm">Automatically map violations to global frameworks.</p>
+              <div className="mt-8 flex flex-wrap gap-2">
+                {["NIST AI RMF", "OWASP Top 10", "ISO 42001"].map(fw => (
+                  <span key={fw} className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-gray-300">{fw}</span>
+                ))}
+              </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3, ease: [0.23, 1, 0.32, 1] }} className="md:col-span-2 bg-gradient-to-br from-[#0A0A0A] to-red-950/20 border border-white/10 rounded-[2rem] p-8 md:p-12 flex flex-col justify-between">
+              <div className="max-w-md">
+                <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mb-8"><FileText className="text-red-500" /></div>
+                <h4 className="text-3xl font-display font-bold text-white mb-4">Defensible Audit Trails</h4>
+                <p className="text-gray-400">Generate board-ready reports and compliance logs with a single click.</p>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+        
+        {/* DARK CTA */}
+        <section className="py-20 md:py-40 px-6 text-center relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[300px] bg-red-600/10 rounded-full blur-[100px] pointer-events-none -z-10" />
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }} className="max-w-3xl mx-auto border border-white/10 bg-black/50 backdrop-blur-xl p-8 md:p-16 rounded-3xl md:rounded-[3rem]">
+            <h2 className="text-3xl md:text-6xl font-display font-bold text-white mb-6 tracking-tight">Govern AI before it governs you.</h2>
+            <p className="text-xl text-gray-400 mb-12">Book a session to see how Devise maps your risk surface.</p>
+            <Link to="/demo" className="inline-flex bg-red-600 text-white px-10 py-5 rounded-full font-bold text-xl hover:bg-red-500 transition-transform active:scale-95 shadow-[0_0_40px_rgba(220,38,38,0.3)]">
+              GET A DEMO
+            </Link>
+          </motion.div>
+        </section>
+      </main>
     </Layout>
   );
 };

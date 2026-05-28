@@ -1,0 +1,336 @@
+<template id="trust-template">
+  <div
+    data-composition-id="trust"
+    data-width="1920"
+    data-height="1080"
+    data-start="0"
+    data-duration="7"
+  >
+    <div class="tr-bg"></div>
+    <div class="tr-grain"></div>
+
+    <!-- Overline -->
+    <div class="tr-overline">Plugs into what you already run.</div>
+
+    <!-- Integration grid (logos as text chips since brand SVGs aren't available) -->
+    <div class="tr-grid">
+      <!-- Row 1: Network Security -->
+      <div class="tr-row tr-row-1">
+        <div class="tr-row-label">Network Security</div>
+        <div class="tr-row-chips">
+          <div class="tr-chip">Zscaler</div>
+          <div class="tr-chip">Palo Alto</div>
+          <div class="tr-chip">Netskope</div>
+          <div class="tr-chip">CrowdStrike</div>
+          <div class="tr-chip">F5</div>
+          <div class="tr-chip">Checkpoint</div>
+        </div>
+      </div>
+      <!-- Row 2: Identity & Productivity -->
+      <div class="tr-row tr-row-2">
+        <div class="tr-row-label">Identity · Productivity</div>
+        <div class="tr-row-chips">
+          <div class="tr-chip">Okta</div>
+          <div class="tr-chip">Microsoft Entra ID</div>
+          <div class="tr-chip">Google Workspace</div>
+          <div class="tr-chip">Microsoft 365</div>
+        </div>
+      </div>
+      <!-- Row 3: Apps -->
+      <div class="tr-row tr-row-3">
+        <div class="tr-row-label">Enterprise Apps</div>
+        <div class="tr-row-chips">
+          <div class="tr-chip">Salesforce</div>
+          <div class="tr-chip">ServiceNow</div>
+          <div class="tr-chip">Slack</div>
+          <div class="tr-chip">Notion</div>
+          <div class="tr-chip">Jira</div>
+        </div>
+      </div>
+      <!-- Row 4: Observability + AI Platforms -->
+      <div class="tr-row tr-row-4">
+        <div class="tr-row-label">Observability · AI Platforms</div>
+        <div class="tr-row-chips">
+          <div class="tr-chip">Datadog</div>
+          <div class="tr-chip">Splunk</div>
+          <div class="tr-chip">AWS Bedrock</div>
+          <div class="tr-chip">Microsoft Copilot</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compliance badges (bottom) -->
+    <div class="tr-compliance">
+      <div class="tr-badge">
+        <div class="tr-badge-mark">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#FF6600" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L4 6 V12 C4 17 7 21 12 22 C17 21 20 17 20 12 V6 Z"/>
+            <path d="M9 12 L11 14 L15 10"/>
+          </svg>
+        </div>
+        <div class="tr-badge-text">
+          <div class="tr-badge-title">SOC 2</div>
+          <div class="tr-badge-sub">Type I certified</div>
+        </div>
+      </div>
+      <div class="tr-badge">
+        <div class="tr-badge-mark">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#FF6600" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L4 6 V12 C4 17 7 21 12 22 C17 21 20 17 20 12 V6 Z"/>
+            <path d="M9 12 L11 14 L15 10"/>
+          </svg>
+        </div>
+        <div class="tr-badge-text">
+          <div class="tr-badge-title">HIPAA</div>
+          <div class="tr-badge-sub">BAA available</div>
+        </div>
+      </div>
+      <div class="tr-badge">
+        <div class="tr-badge-mark">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#FF6600" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L4 6 V12 C4 17 7 21 12 22 C17 21 20 17 20 12 V6 Z"/>
+            <path d="M9 12 L11 14 L15 10"/>
+          </svg>
+        </div>
+        <div class="tr-badge-text">
+          <div class="tr-badge-title">GDPR</div>
+          <div class="tr-badge-sub">DPAs on request</div>
+        </div>
+      </div>
+      <div class="tr-badge">
+        <div class="tr-badge-mark">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#FF6600" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 12 L12 16 L16 8"/>
+          </svg>
+        </div>
+        <div class="tr-badge-text">
+          <div class="tr-badge-title">EU AI Act</div>
+          <div class="tr-badge-sub">Ready</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Final stat -->
+    <div class="tr-stat">
+      <span class="tr-stat-num">60</span><span class="tr-stat-unit"> seconds</span>
+      <div class="tr-stat-sub">from install to first ROI report</div>
+    </div>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500&display=swap");
+
+      [data-composition-id="trust"] {
+        width: 1920px; height: 1080px;
+        position: relative; overflow: hidden;
+        background: #F5EDE0; color: #14110A;
+      }
+      [data-composition-id="trust"] .tr-bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 50% 50%, #FCF6E7 0%, #F5EDE0 60%, #EBDFC9 100%);
+      }
+      [data-composition-id="trust"] .tr-grain {
+        position: absolute; inset: 0;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.15 0 0 0 0 0.10 0 0 0 0 0.06 0 0 0 0.04 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+        pointer-events: none; mix-blend-mode: multiply;
+      }
+
+      [data-composition-id="trust"] .tr-overline {
+        position: absolute;
+        top: 80px; left: 50%;
+        transform: translateX(-50%);
+        font-family: "Instrument Serif", serif;
+        font-style: italic;
+        font-size: 56px;
+        color: #2A1F0A;
+        letter-spacing: -0.01em;
+        opacity: 0;
+      }
+
+      [data-composition-id="trust"] .tr-grid {
+        position: absolute;
+        top: 200px; left: 80px; right: 80px;
+        display: flex; flex-direction: column;
+        gap: 28px;
+      }
+      [data-composition-id="trust"] .tr-row {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        opacity: 0;
+      }
+      [data-composition-id="trust"] .tr-row-label {
+        flex: 0 0 380px;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 500;
+        font-size: 18px;
+        color: rgba(20,17,10,0.55);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-align: right;
+      }
+      [data-composition-id="trust"] .tr-row-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+      [data-composition-id="trust"] .tr-chip {
+        padding: 16px 28px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.88);
+        border: 1px solid rgba(20,17,10,0.10);
+        box-shadow:
+          0 4px 12px rgba(20,17,10,0.05),
+          inset 0 1px 0 rgba(255,255,255,0.9);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 600;
+        font-size: 26px;
+        color: #14110A;
+        letter-spacing: -0.015em;
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        will-change: transform, opacity;
+      }
+      [data-composition-id="trust"] .tr-chip:hover {
+        border-color: #FF6600;
+      }
+
+      [data-composition-id="trust"] .tr-compliance {
+        position: absolute;
+        bottom: 200px; left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 48px;
+        opacity: 0;
+      }
+      [data-composition-id="trust"] .tr-badge {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 28px;
+        background: rgba(255,255,255,0.92);
+        border: 1px solid rgba(255,102,0,0.20);
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(255,102,0,0.10);
+        opacity: 0;
+        will-change: transform, opacity;
+      }
+      [data-composition-id="trust"] .tr-badge-mark {
+        width: 40px; height: 40px;
+      }
+      [data-composition-id="trust"] .tr-badge-mark svg {
+        width: 100%; height: 100%;
+      }
+      [data-composition-id="trust"] .tr-badge-title {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 700;
+        font-size: 22px;
+        color: #14110A;
+        letter-spacing: -0.01em;
+        line-height: 1;
+        margin-bottom: 3px;
+      }
+      [data-composition-id="trust"] .tr-badge-sub {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 500;
+        font-size: 14px;
+        color: rgba(20,17,10,0.55);
+        letter-spacing: 0.04em;
+      }
+
+      [data-composition-id="trust"] .tr-stat {
+        position: absolute;
+        bottom: 50px; left: 50%;
+        transform: translateX(-50%);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 800;
+        font-size: 80px;
+        color: #14110A;
+        letter-spacing: -0.04em;
+        text-align: center;
+        opacity: 0;
+        line-height: 1;
+      }
+      [data-composition-id="trust"] .tr-stat-num {
+        background: linear-gradient(180deg, #FF9966 0%, #FF6600 60%, #FF0000 100%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        font-feature-settings: "tnum";
+      }
+      [data-composition-id="trust"] .tr-stat-unit {
+        color: #14110A;
+        font-weight: 500;
+      }
+      [data-composition-id="trust"] .tr-stat-sub {
+        font-family: "Instrument Serif", serif;
+        font-style: italic;
+        font-weight: 400;
+        font-size: 28px;
+        color: rgba(20,17,10,0.65);
+        margin-top: 10px;
+        letter-spacing: -0.005em;
+      }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        const root = document.querySelector('[data-composition-id="trust"]');
+
+        const overline = root.querySelector(".tr-overline");
+        const rows = root.querySelectorAll(".tr-row");
+        const allChips = root.querySelectorAll(".tr-chip");
+        const compliance = root.querySelector(".tr-compliance");
+        const badges = root.querySelectorAll(".tr-badge");
+        const stat = root.querySelector(".tr-stat");
+
+        gsap.set(overline, { y: -20 });
+        allChips.forEach(c => gsap.set(c, { y: 24, scale: 0.9 }));
+        badges.forEach(b => gsap.set(b, { y: 30 }));
+        gsap.set(stat, { y: 24 });
+
+        // 0–0.5: Overline
+        tl.to(overline, { opacity: 1, y: 0, duration: 0.5, ease: "expo.out" }, 0);
+
+        // Rows cascade in
+        rows.forEach((r, i) => {
+          tl.to(r, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.4 + i * 0.25);
+        });
+
+        // Chips populate left-to-right within each row
+        allChips.forEach((c, i) => {
+          tl.to(c, {
+            opacity: 1, y: 0, scale: 1,
+            duration: 0.35, ease: "expo.out"
+          }, 0.5 + i * 0.06);
+        });
+
+        // 2.7 : Compliance badges
+        tl.to(compliance, { opacity: 1, duration: 0.3, ease: "power2.out" }, 2.7);
+        badges.forEach((b, i) => {
+          tl.to(b, {
+            opacity: 1, y: 0,
+            duration: 0.5, ease: "expo.out"
+          }, 2.8 + i * 0.12);
+        });
+
+        // 4.0 : Big stat lands
+        tl.to(stat, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, 4.0);
+        tl.to(stat, {
+          scale: 1.04, duration: 0.3, ease: "power2.out"
+        }, 4.4);
+        tl.to(stat, {
+          scale: 1, duration: 0.5, ease: "elastic.out(1, 0.4)"
+        }, 4.7);
+
+        // 6.2 : Exit
+        tl.to([overline, ...rows, compliance, stat], {
+          opacity: 0, duration: 0.5, ease: "power2.in"
+        }, 6.4);
+
+        window.__timelines["trust"] = tl;
+      })();
+    </script>
+  </div>
+</template>

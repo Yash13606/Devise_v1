@@ -12,13 +12,13 @@ export const DemoPage = () => {
 
   return (
     <Layout>
-      <section className="relative overflow-hidden pt-32 pb-24 px-6">
+      <section className="relative overflow-hidden pt-24 md:pt-32 pb-16 md:pb-24 px-6">
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(circle,_#F04E23_0%,_transparent_70%)] opacity-[0.6] blur-3xl -z-10 pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[radial-gradient(circle,_#F04E23_0%,_transparent_70%)] opacity-[0.6] blur-3xl -z-10 pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10 mb-16">
-          <h1 className="text-5xl font-bold text-brand-dark">Book a 30-Minute Demo</h1>
-          <p className="text-xl text-brand-gray mt-4">See Devise reveal your organization&apos;s complete AI landscape.</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-brand-dark">Book a 30-Minute Demo</h1>
+          <p className="text-lg md:text-xl text-brand-gray mt-4">See Devise reveal your organization&apos;s complete AI landscape.</p>
         </div>
 
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">

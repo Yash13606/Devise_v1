@@ -32,9 +32,9 @@ export const UseCasesPage = () => {
 
   return (
     <Layout>
-      <section className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
+      <section className="pt-24 md:pt-32 pb-16 md:pb-24 px-6 max-w-7xl mx-auto">
         <div className="text-xs font-semibold uppercase tracking-widest text-brand-orange mb-4">Use Cases</div>
-        <h1 className="text-5xl font-bold text-brand-dark mb-4">Real situations. Real answers.</h1>
+        <h1 className="text-4xl md:text-5xl font-bold text-brand-dark mb-4">Real situations. Real answers.</h1>
         <p className="text-brand-gray text-lg max-w-2xl">
           Every use case maps to a question a leader is actually asking right now.
         </p>
@@ -73,9 +73,9 @@ export const UseCasesPage = () => {
       </section>
 
       {/* By Audience */}
-      <section className="py-24 px-6 max-w-7xl mx-auto">
+      <section className="py-16 md:py-24 px-6 max-w-7xl mx-auto">
         <h2 className="text-3xl font-bold text-brand-dark text-center mb-12">By Audience</h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
           {audiences.map((a, i) => (
             <div key={i} className="bg-white rounded-2xl shadow-lg p-6 text-center">
               <div className="text-brand-orange mx-auto mb-3 flex justify-center">{a.icon}</div>
@@ -87,8 +87,8 @@ export const UseCasesPage = () => {
       </section>
 
       {/* Dark CTA */}
-      <section className="mx-6 md:mx-auto max-w-5xl rounded-2xl bg-brand-navy text-white py-16 px-8 mb-24 text-center">
-        <h2 className="text-3xl font-bold mb-4">See how Devise solves your challenge.</h2>
+      <section className="mx-6 md:mx-auto max-w-5xl rounded-2xl bg-brand-navy text-white py-12 md:py-16 px-6 md:px-8 mb-16 md:mb-24 text-center">
+        <h2 className="text-2xl md:text-3xl font-bold mb-4">See how Devise solves your challenge.</h2>
         <p className="text-gray-400 mb-8">Book a 30-minute demo tailored to your role.</p>
         <Link to="/demo" className="bg-brand-orange text-white rounded-full px-8 py-3 font-semibold hover:bg-orange-600 transition-colors inline-block">
           Book a Demo

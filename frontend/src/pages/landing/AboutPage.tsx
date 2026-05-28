@@ -5,8 +5,8 @@ export const AboutPage = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="pt-32 pb-24 px-6 max-w-4xl mx-auto text-center">
-        <h1 className="text-5xl md:text-6xl font-bold text-brand-dark leading-tight">
+      <section className="pt-24 md:pt-32 pb-16 md:pb-24 px-6 max-w-4xl mx-auto text-center">
+        <h1 className="text-4xl md:text-6xl font-bold text-brand-dark leading-tight">
           The Future of AI Is Governed. Or It Isn&apos;t.
         </h1>
         <p className="text-xl text-brand-gray mt-6 max-w-2xl mx-auto">
@@ -21,7 +21,7 @@ export const AboutPage = () => {
       </section>
 
       {/* Mission */}
-      <section className="py-24 px-6 max-w-4xl mx-auto">
+      <section className="py-16 md:py-24 px-6 max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold text-brand-dark mb-6">Our Mission</h2>
         <p className="text-brand-gray text-lg leading-relaxed">
           Devise was built because enterprise AI adoption has outpaced every governance framework that exists. We exist to close that gap — giving security, finance, and AI leaders the real-time visibility they need to operate confidently in an AI-first world.
@@ -29,7 +29,7 @@ export const AboutPage = () => {
       </section>
 
       {/* Values */}
-      <section className="py-24 px-6 max-w-7xl mx-auto">
+      <section className="py-16 md:py-24 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[
             { icon: <Eye />, title: "Transparency", desc: "We believe enterprises deserve full visibility into their AI usage — no blind spots." },
@@ -47,8 +47,8 @@ export const AboutPage = () => {
       </section>
 
       {/* Dark CTA */}
-      <section className="mx-6 md:mx-auto max-w-5xl rounded-2xl bg-brand-navy text-white py-16 px-8 mb-24 text-center">
-        <h2 className="text-3xl font-bold mb-4">Join us in building the future of AI governance.</h2>
+      <section className="mx-6 md:mx-auto max-w-5xl rounded-2xl bg-brand-navy text-white py-12 md:py-16 px-6 md:px-8 mb-16 md:mb-24 text-center">
+        <h2 className="text-2xl md:text-3xl font-bold mb-4">Join us in building the future of AI governance.</h2>
         <p className="text-gray-400 mb-8">We&apos;re hiring across engineering, design, and go-to-market.</p>
         <button className="bg-brand-orange text-white rounded-full px-8 py-3 font-semibold hover:bg-orange-600 transition-colors">
           View Careers

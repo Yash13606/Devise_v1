@@ -12,7 +12,7 @@ export const Footer = () => {
               <span className="ml-2 text-xl font-bold text-white tracking-wide">Devise</span>
             </div>
             <p className="text-gray-400 max-w-sm text-balance leading-relaxed text-sm">
-              See, understand, and govern enterprise AI. The system of record for the AI-first organization.
+              The AI adoption engine for every company.
             </p>
           </div>
 

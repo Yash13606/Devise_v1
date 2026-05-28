@@ -27,23 +27,23 @@ export const LandingPage = () => {
             Enterprise AI Governance Platform
           </div>
 
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-brand-dark leading-tight mt-2">
-            The System of Record for Enterprise AI
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-brand-dark leading-tight mt-2 animate-fade-in-up">
+            The AI Adoption Engine for Every Company
           </h1>
 
-          <p className="text-xl md:text-2xl text-brand-gray font-medium mt-4">
-            See Every Tool. Control Every Connection. Govern Every Risk.
+          <p className="text-xl md:text-2xl text-brand-gray font-medium mt-4 animate-fade-in-up">
+            Understand • Act • Quantify
           </p>
 
-          <p className="text-base md:text-lg text-brand-gray max-w-2xl mx-auto mt-4 leading-relaxed">
-            You can&apos;t govern what you can&apos;t see. Right now, developers and employees are adopting AI tools outside of IT&apos;s control. Devise changes that by delivering complete visibility at the OS level and ironclad intent enforcement at the agentic layer.
+          <p className="text-base md:text-lg text-brand-gray max-w-2xl mx-auto mt-4 leading-relaxed animate-fade-in-up">
+            1,247 AI tools detected • 31% adoption rate • $128K waste found • 200+ teams coached
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center mt-8">
-            <Link to="/dashboard" className="border-2 border-brand-dark text-brand-dark rounded-full px-6 py-2.5 font-medium hover:bg-brand-dark hover:text-white transition-colors flex items-center gap-2">
+            <Link to="/dashboard" className="border-2 border-brand-dark text-brand-dark rounded-full px-6 py-2.5 font-medium hover:bg-brand-dark hover:text-white transition-colors flex items-center gap-2 btn-hover">
               Agent Dashboard <ArrowRight size={16} />
             </Link>
-            <Link to="/mcp" className="bg-brand-orange text-white rounded-full px-6 py-2.5 font-medium hover:bg-orange-600 transition-colors shadow-lg shadow-brand-orange/20 flex items-center gap-2">
+            <Link to="/mcp" className="bg-brand-orange text-white rounded-full px-6 py-2.5 font-medium hover:bg-orange-600 transition-colors shadow-lg shadow-brand-orange/20 flex items-center gap-2 btn-hover">
               MCP Dashboard <ArrowRight size={16} />
             </Link>
           </div>
@@ -65,11 +65,11 @@ export const LandingPage = () => {
 
 
       {/* Problem Section */}
-      <section className="py-32 px-6 max-w-7xl mx-auto">
+      <section className="py-16 md:py-32 px-6 max-w-7xl mx-auto">
         <div className="inline-block px-3 py-1 mb-6 rounded bg-brand-orange text-white text-[11px] font-black uppercase tracking-widest shadow-sm">The Challenge</div>
         
-        <div className="max-w-4xl mb-24">
-          <h2 className="text-4xl md:text-[3.5rem] font-bold text-brand-dark leading-[1.1] mb-8 tracking-tight">
+        <div className="max-w-4xl mb-16 md:mb-24">
+          <h2 className="text-3xl md:text-[3.5rem] font-bold text-brand-dark leading-[1.1] mb-6 md:mb-8 tracking-tight">
             Enterprise AI is now three problems at once
           </h2>
           <p className="text-brand-gray text-xl max-w-2xl leading-relaxed font-medium">
@@ -142,7 +142,7 @@ export const LandingPage = () => {
       </section>
 
       {/* Missing Link */}
-      <section className="py-32 px-6">
+      <section className="py-16 md:py-32 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-block px-3 py-1 mb-4 rounded bg-brand-orange text-white text-[11px] font-black uppercase tracking-widest shadow-sm">The Missing Link in Your Stack</div>
@@ -170,7 +170,7 @@ export const LandingPage = () => {
 
             {/* Stacked right cards */}
             <div className="md:col-span-5 flex flex-col gap-5">
-              <div className="flex-1 bg-white rounded-3xl border border-gray-100 p-8 shadow-soft group hover:shadow-heavy transition-all duration-300">
+              <div className="flex-1 flex flex-col justify-between px-8 md:px-10 py-10 md:py-12 gap-5 bg-white rounded-[2rem] border border-gray-100 shadow-soft hover:shadow-heavy transition-all duration-500 btn-hover">
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart2 className="w-5 h-5 text-brand-purple" />
                   <span className="text-xs font-bold uppercase tracking-wider text-brand-purple">Pulse</span>
@@ -189,9 +189,9 @@ export const LandingPage = () => {
             </div>
 
             {/* Full-width audit trail */}
-            <div className="md:col-span-12 bg-brand-dark rounded-3xl p-8 md:p-10 text-white">
-              <div className="flex flex-col md:flex-row md:items-start gap-8">
-                <div className="md:w-1/3">
+            <div className="md:col-span-12 bg-brand-dark rounded-3xl p-6 md:p-10 text-white">
+              <div className="flex flex-col lg:flex-row lg:items-start gap-8">
+                <div className="lg:w-1/3">
                   <div className="flex items-center gap-2 mb-4">
                     <Eye className="w-5 h-5 text-brand-orange" />
                     <span className="text-xs font-bold uppercase tracking-wider text-brand-orange">Audit Trail</span>
@@ -199,7 +199,7 @@ export const LandingPage = () => {
                   <h3 className="text-xl font-bold mb-2">Live AI Monitoring</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">Every AI interaction logged, timestamped, and mapped. Regulatory-ready from day one.</p>
                 </div>
-                <div className="md:w-2/3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 space-y-3">
+                <div className="lg:w-2/3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 md:p-5 space-y-3">
                   {[
                     { name: "Priya M.", tool: "ChatGPT", dept: "Engineering", time: "10:32 AM", badge: "ALERT" },
                     { name: "David R.", tool: "Copilot", dept: "Product", time: "10:28 AM", badge: "OK" },
@@ -217,7 +217,7 @@ export const LandingPage = () => {
                       <span className="text-gray-400 hidden md:block">{item.tool}</span>
                       <div className="flex items-center gap-3">
                         <span className="text-gray-500">{item.time}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${item.badge === "ALERT" ? "bg-brand-orange/20 text-brand-orange" : "bg-green-500/15 text-green-400"}`}>{item.badge}</span>
+                        <span className={`h-2.5 rounded-full transition-all duration-300 ${i === 0 ? 'bg-brand-orange w-8 animate-pulse' : 'bg-gray-300 w-2.5 hover:bg-gray-400'} px-2 py-0.5 rounded-full text-[9px] font-bold ${item.badge === "ALERT" ? "bg-brand-orange/20 text-brand-orange" : "bg-green-500/15 text-green-400"}`}>{item.badge}</span>
                       </div>
                     </div>
                   ))}
@@ -229,7 +229,7 @@ export const LandingPage = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-32 px-6 max-w-7xl mx-auto flex flex-col items-center">
+      <section className="py-16 md:py-32 px-6 max-w-7xl mx-auto flex flex-col items-center">
         <div className="inline-block px-3 py-1 mb-4 rounded bg-brand-orange text-white text-[11px] font-black uppercase tracking-widest shadow-sm">How It Works</div>
         <h2 className="text-4xl md:text-5xl font-bold text-center text-brand-dark mb-4 tracking-tight">See. Control. Govern.</h2>
         <p className="text-brand-gray text-lg text-center max-w-2xl px-4">
@@ -270,8 +270,8 @@ export const LandingPage = () => {
       </section>
 
       {/* Stats */}
-      <section className="bg-white py-20 px-6">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
+      <section className="bg-white py-16 md:py-20 px-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { num: "80%", label: "of employees use unapproved AI tools" },
             { num: "86%", label: "of orgs are blind to AI data flows" },
@@ -287,7 +287,7 @@ export const LandingPage = () => {
       </section>
 
       {/* 3 Modules */}
-      <section className="py-24 px-6 max-w-7xl mx-auto">
+      <section className="py-16 md:py-24 px-6 max-w-7xl mx-auto">
         <div className="mb-16">
           <div className="inline-block px-3 py-1 mb-4 rounded bg-brand-orange text-white text-[11px] font-black uppercase tracking-widest shadow-sm">The Solution</div>
           <h2 className="text-4xl md:text-5xl font-bold text-brand-dark mb-4 max-w-2xl">One deployment. Complete visibility.</h2>

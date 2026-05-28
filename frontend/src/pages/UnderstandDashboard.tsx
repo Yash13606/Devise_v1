@@ -9,7 +9,7 @@ export const UnderstandDashboard: React.FC = () => {
   const handleScan = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/understand/scan', {
+      const response = await fetch('/api/understand/scan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
