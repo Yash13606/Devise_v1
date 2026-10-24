@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
+  type TooltipProps,
 } from "recharts";
 import { ChevronDown, Check } from "lucide-react";
 import { useAnalytics } from "@/hooks/useDashboard";
@@ -38,7 +39,7 @@ function CardHeader({ title, sub }: { title: string; sub: string }) {
 const PIE_COLORS = ["#DC2626", "#D97706", "#16A34A", "#3B82F6", "#7C3AED", "#0891B2", "#DB2777", "#64748B"];
 
 // ─── Horizontal bar custom tooltip ────────────────────────────────────────
-function BarTip({ active, payload, label }: any) {
+function BarTip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background:"#1A1A2E", color:"#fff", padding:"6px 12px", borderRadius:8, fontSize:12 }}>

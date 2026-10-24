@@ -178,8 +178,8 @@ export function DataRiskTab() {
       const rs = await fetchEmployeeRiskScores();
       setRiskScores(rs);
       toast.success("Employee risk scores rebuilt!");
-    } catch (e: any) {
-      toast.error("Rebuild failed: " + e.message);
+    } catch (e) {
+      toast.error("Rebuild failed: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setRebuilding(false);
     }
@@ -190,8 +190,8 @@ export function DataRiskTab() {
       await markSensitivityEventReviewed(ev.id);
       setEvents(prev => prev.map(e => e.id === ev.id ? { ...e, reviewed: true } : e));
       toast.success("Event marked as reviewed");
-    } catch (e: any) {
-      toast.error("Failed: " + e.message);
+    } catch (e) {
+      toast.error("Failed: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 

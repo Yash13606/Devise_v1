@@ -1,6 +1,6 @@
 """Devise Dashboard API — FastAPI backend."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sys
@@ -24,12 +24,12 @@ def health():
 
 @app.get("/api/event")
 def get_events():
-    return {"events": []}
+    raise HTTPException(status_code=501, detail="Durable event ingestion and authorized reads are not implemented yet.")
 
 
 @app.post("/api/event")
 def post_event(event: dict):
-    return {"status": "received"}
+    raise HTTPException(status_code=501, detail="Durable event ingestion is not implemented yet; this event was not saved.")
 
 
 # ─── Understand Pipeline (code graph scanning) ──────────────────────────────

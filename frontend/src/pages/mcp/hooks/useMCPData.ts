@@ -1,5 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { useQuery as useReactQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { runtimeConfig } from "@/lib/runtimeConfig";
+
+function usePreviewQuery<T>(options: UseQueryOptions<T, Error>) {
+  return useReactQuery<T, Error>({
+    ...options,
+    queryKey: ["demo", ...options.queryKey],
+    queryFn: runtimeConfig.isDemo ? options.queryFn : async () => {
+      throw new Error("MCP monitoring is unavailable. These sample screens require explicit demo mode.");
+    },
+    retry: false,
+  });
+}
 import type {
   MCPCall, MCPServer, MCPAlert, MCPPolicy, MCPSession,
   GatewayStatus, KPIMetric, SSOStatus, SCIMConfig,
@@ -196,111 +207,34 @@ const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 // --- Overview ---
 
 export function useOverviewKPIs() {
-  return useQuery<KPIMetric[]>({
-    queryKey: ["mcp", "overview", "kpis"],
-    queryFn: async () => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const { data, error } = await supabase
-        .from("mcp_audit_ledger")
-        .select("status", { count: "exact" })
-        .gte("timestamp", today.toISOString());
-
-      if (error) console.error(error);
-
-      const total = data?.length || 0;
-      const approved = data?.filter(r => r.status === "success").length || 0;
-      const blocked = total - approved;
-
-      return [
-        { label: "Total MCP Calls Today", value: total, change: 0, trend: "flat", trendColor: "neutral" },
-        { label: "Calls Approved", value: approved, change: 0, trend: "flat", trendColor: "green" },
-        { label: "Calls Blocked", value: blocked, change: 0, trend: "flat", trendColor: "red" },
-        { label: "Avg Gateway Latency", value: "8ms", change: 0, trend: "flat", trendColor: "green" },
-      ];
-    },
-  });
+  return usePreviewQuery<KPIMetric[]>({ queryKey: ["mcp", "overview", "kpis"], queryFn: async () => [
+    { label: "Sample MCP Calls", value: MOCK_CALLS.length, change: 0, trend: "flat", trendColor: "neutral" },
+    { label: "Sample Approvals", value: MOCK_CALLS.filter(c => c.decision === "approved").length, change: 0, trend: "flat", trendColor: "green" },
+    { label: "Sample Blocks", value: MOCK_CALLS.filter(c => c.decision === "blocked").length, change: 0, trend: "flat", trendColor: "red" },
+    { label: "Measured Latency", value: "Unavailable", change: 0, trend: "flat", trendColor: "neutral" },
+  ] });
 }
 
 export function useGatewayStatus() {
-  return useQuery<GatewayStatus>({
+  return usePreviewQuery<GatewayStatus>({
     queryKey: ["mcp", "gateway", "status"],
     queryFn: async () => {
       await delay(200); // TODO: GET /api/mcp/gateway/status
-      return { state: "online", uptimePercent: 99.97, lastIncident: "2026-03-28T02:15:00Z", currentLatencyMs: 8, callsPerMinute: 42 };
+      return { state: "offline", uptimePercent: 0, lastIncident: "2026-03-28T02:15:00Z", currentLatencyMs: 0, callsPerMinute: 0 };
     },
   });
 }
 
 export function useCallTimeline() {
-  return useQuery<TimeSeriesDataPoint[]>({
-    queryKey: ["mcp", "calls", "timeline"],
-    queryFn: async () => {
-      const yesterday = new Date(Date.now() - 24 * 3600000);
-      const { data, error } = await supabase
-        .from("mcp_audit_ledger")
-        .select("timestamp, status")
-        .gte("timestamp", yesterday.toISOString());
-        
-      if (error || !data) return generateTimeline();
-      
-      const hourCounts: Record<string, { approved: number; blocked: number }> = {};
-      
-      data.forEach((row: any) => {
-        const hour = new Date(row.timestamp).toISOString().slice(0, 13) + ":00";
-        if (!hourCounts[hour]) hourCounts[hour] = { approved: 0, blocked: 0 };
-        if (row.status === "success") hourCounts[hour].approved++;
-        else hourCounts[hour].blocked++;
-      });
-      
-      const points: TimeSeriesDataPoint[] = [];
-      const now = Date.now();
-      for (let i = 23; i >= 0; i--) {
-        const ts = new Date(now - i * 3600000).toISOString();
-        const hour = ts.slice(0, 13) + ":00";
-        points.push({ ...hourCounts[hour] || { approved: 0, blocked: 0 }, timestamp: ts });
-      }
-      return points;
-    },
-  });
+  return usePreviewQuery<TimeSeriesDataPoint[]>({ queryKey: ["mcp", "calls", "timeline"], queryFn: async () => generateTimeline() });
 }
 
 export function useTopServers() {
-  return useQuery<ServerCallVolume[]>({
-    queryKey: ["mcp", "servers", "top"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("mcp_audit_ledger")
-        .select("tool_name, status");
-        
-      if (error || !data) return [];
-
-      const serverStats: Record<string, { approved: number; blocked: number }> = {};
-
-      data.forEach((row: any) => {
-        const name = row.tool_name || "Unknown Server";
-        if (!serverStats[name]) serverStats[name] = { approved: 0, blocked: 0 };
-        if (row.status === "success") serverStats[name].approved++;
-        else serverStats[name].blocked++;
-      });
-      
-      return Object.entries(serverStats)
-        .map(([name, stats]) => ({
-          serverName: name,
-          category: "Custom",
-          totalCalls: stats.approved + stats.blocked,
-          approved: stats.approved,
-          blocked: stats.blocked,
-        }))
-        .sort((a, b) => b.totalCalls - a.totalCalls)
-        .slice(0, 5);
-    },
-  });
+  return usePreviewQuery<ServerCallVolume[]>({ queryKey: ["mcp", "servers", "top"], queryFn: async () => [] });
 }
 
 export function useTopClients() {
-  return useQuery<ClientCallVolume[]>({
+  return usePreviewQuery<ClientCallVolume[]>({
     queryKey: ["mcp", "clients", "top"],
     queryFn: async () => {
       await delay(250); // TODO: GET /api/mcp/clients/top
@@ -316,7 +250,7 @@ export function useTopClients() {
 }
 
 export function useHumanQueueCount() {
-  return useQuery<number>({
+  return usePreviewQuery<number>({
     queryKey: ["mcp", "queue", "count"],
     queryFn: async () => {
       await delay(150); // TODO: GET /api/mcp/queue/count
@@ -328,69 +262,15 @@ export function useHumanQueueCount() {
 // --- Registry ---
 
 export function useMCPServers() {
-  return useQuery<MCPServer[]>({
-    queryKey: ["mcp", "servers"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("mcp_registry")
-        .select("*");
-        
-      if (error || !data) return SERVERS;
-      
-      return data.map((row: any) => ({
-        id: row.id,
-        name: row.server_name,
-        url: row.server_url,
-        description: "",
-        category: "Custom",
-        status: row.status as "approved" | "blocked" | "pending",
-        allowedRoles: [],
-        monthlyCallCount: 0,
-        avgRiskScore: row.risk_score || 0,
-        rateLimit: 100,
-        addedAt: row.created_at,
-      }));
-    },
-  });
+  return usePreviewQuery<MCPServer[]>({ queryKey: ["mcp", "servers"], queryFn: async () => SERVERS });
 }
 
-// --- Calls ---
-
 export function useMCPCalls() {
-  return useQuery<MCPCall[]>({
-    queryKey: ["mcp", "calls"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("mcp_audit_ledger")
-        .select("*")
-        .order("timestamp", { ascending: false })
-        .limit(100);
-        
-      if (error || !data) return MOCK_CALLS;
-      
-      return data.map((row: any) => ({
-        id: row.id.toString(),
-        timestamp: row.timestamp,
-        user: { name: row.actor_id, email: row.actor_id, role: "User", department: "Unknown", id: row.actor_id },
-        aiClient: "cursor", // stub
-        mcpServer: { id: row.tool_name || "unknown", name: row.tool_name || "Unknown Server", category: "Custom", url: "mcp://" },
-        method: row.event_type,
-        riskScore: row.risk_score || 0,
-        riskBreakdown: { total: row.risk_score || 0, components: [] },
-        decision: row.status === "success" ? "approved" : "blocked",
-        decisionBy: "System",
-        latencyMs: row.duration_ms || 8,
-        threats: [], // parse threat_flags if needed
-        policyTrail: [],
-        requestPayload: JSON.stringify(row.request_payload, null, 2),
-        responsePayload: JSON.stringify(row.response_meta, null, 2),
-      }));
-    },
-  });
+  return usePreviewQuery<MCPCall[]>({ queryKey: ["mcp", "calls"], queryFn: async () => MOCK_CALLS });
 }
 
 export function useHumanQueue() {
-  return useQuery<MCPCall[]>({
+  return usePreviewQuery<MCPCall[]>({
     queryKey: ["mcp", "queue"],
     queryFn: async () => {
       await delay(300); // TODO: GET /api/mcp/queue
@@ -402,73 +282,15 @@ export function useHumanQueue() {
 // --- Threats ---
 
 export function useThreatLog() {
-  return useQuery<MCPCall[]>({
-    queryKey: ["mcp", "threats"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("mcp_audit_ledger")
-        .select("*")
-        .gte("risk_score", 40)
-        .order("timestamp", { ascending: false })
-        .limit(100);
-        
-      if (error || !data) return MOCK_CALLS.filter(c => c.threats.length > 0);
-      
-      return data.map((row: any) => ({
-        id: row.id.toString(),
-        timestamp: row.timestamp,
-        user: { name: row.actor_id, email: row.actor_id, role: "User", department: "Unknown", id: row.actor_id },
-        aiClient: "cursor", // stub
-        mcpServer: { id: row.tool_name || "unknown", name: row.tool_name || "Unknown Server", category: "Custom", url: "mcp://" },
-        method: row.event_type,
-        riskScore: row.risk_score || 0,
-        riskBreakdown: { total: row.risk_score || 0, components: [] },
-        decision: row.status === "success" ? "approved" : "blocked",
-        decisionBy: "System",
-        latencyMs: row.duration_ms || 8,
-        threats: [], // parse threat_flags if needed
-        policyTrail: [],
-        requestPayload: JSON.stringify(row.request_payload, null, 2),
-        responsePayload: JSON.stringify(row.response_meta, null, 2),
-      }));
-    },
-  });
+  return usePreviewQuery<MCPCall[]>({ queryKey: ["mcp", "threats"], queryFn: async () => MOCK_CALLS.filter(c => c.threats.length > 0) });
 }
 
-// --- Alerts ---
-
 export function useMCPAlerts() {
-  return useQuery<MCPAlert[]>({
-    queryKey: ["mcp", "alerts"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("mcp_audit_ledger")
-        .select("*")
-        .gte("risk_score", 60)
-        .order("timestamp", { ascending: false })
-        .limit(50);
-        
-      if (error || !data) return MOCK_ALERTS;
-      
-      return data.map((row: any) => ({
-        id: row.id.toString(),
-        severity: row.risk_score >= 80 ? "critical" : "high",
-        type: row.risk_score > 80 ? "pii" : "policy-violation",
-        title: `High Risk Event Detected on ${row.tool_name || "Unknown Server"}`,
-        description: `Risk score ${row.risk_score} triggered for action by ${row.actor_id}.`,
-        user: row.actor_id,
-        mcpServer: row.tool_name || "Unknown Server",
-        aiClient: "cursor",
-        timestamp: row.timestamp,
-        status: "new",
-        recommendedAction: "Review payload and consider blocking tool/user."
-      }));
-    },
-  });
+  return usePreviewQuery<MCPAlert[]>({ queryKey: ["mcp", "alerts"], queryFn: async () => MOCK_ALERTS });
 }
 
 export function useAlertNotificationRules() {
-  return useQuery<AlertNotificationRule[]>({
+  return usePreviewQuery<AlertNotificationRule[]>({
     queryKey: ["mcp", "alerts", "notification-rules"],
     queryFn: async () => {
       await delay(200); // TODO: GET /api/mcp/alerts/notification-rules
@@ -480,7 +302,7 @@ export function useAlertNotificationRules() {
 // --- Identity ---
 
 export function useSSOStatus() {
-  return useQuery<SSOStatus>({
+  return usePreviewQuery<SSOStatus>({
     queryKey: ["mcp", "sso", "status"],
     queryFn: async () => {
       await delay(200); // TODO: GET /api/mcp/sso/status
@@ -490,7 +312,7 @@ export function useSSOStatus() {
 }
 
 export function useSCIMConfig() {
-  return useQuery<SCIMConfig>({
+  return usePreviewQuery<SCIMConfig>({
     queryKey: ["mcp", "scim", "config"],
     queryFn: async () => {
       await delay(200); // TODO: GET /api/mcp/scim/config
@@ -500,7 +322,7 @@ export function useSCIMConfig() {
 }
 
 export function useRoleAccessMatrix() {
-  return useQuery<RoleAccessEntry[]>({
+  return usePreviewQuery<RoleAccessEntry[]>({
     queryKey: ["mcp", "roles", "matrix"],
     queryFn: async () => {
       await delay(300); // TODO: GET /api/mcp/roles/matrix
@@ -513,7 +335,7 @@ export function useRoleAccessMatrix() {
 }
 
 export function useMCPSessions() {
-  return useQuery<MCPSession[]>({
+  return usePreviewQuery<MCPSession[]>({
     queryKey: ["mcp", "sessions"],
     queryFn: async () => {
       await delay(250); // TODO: GET /api/mcp/sessions
@@ -523,7 +345,7 @@ export function useMCPSessions() {
 }
 
 export function useTeamMembers() {
-  return useQuery<TeamMember[]>({
+  return usePreviewQuery<TeamMember[]>({
     queryKey: ["mcp", "team"],
     queryFn: async () => {
       await delay(200); // TODO: GET /api/mcp/team
@@ -535,7 +357,7 @@ export function useTeamMembers() {
 // --- Policies ---
 
 export function useMCPPolicies() {
-  return useQuery<MCPPolicy[]>({
+  return usePreviewQuery<MCPPolicy[]>({
     queryKey: ["mcp", "policies"],
     queryFn: async () => {
       await delay(300); // TODO: GET /api/mcp/policies
@@ -545,7 +367,7 @@ export function useMCPPolicies() {
 }
 
 export function useFirewallRules() {
-  return useQuery<FirewallRule[]>({
+  return usePreviewQuery<FirewallRule[]>({
     queryKey: ["mcp", "firewall"],
     queryFn: async () => {
       await delay(200); // TODO: GET /api/mcp/firewall
@@ -557,7 +379,7 @@ export function useFirewallRules() {
 // --- Analytics ---
 
 export function useServerCallVolumes() {
-  return useQuery<ServerCallVolume[]>({
+  return usePreviewQuery<ServerCallVolume[]>({
     queryKey: ["mcp", "analytics", "servers"],
     queryFn: async () => {
       await delay(350); // TODO: GET /api/mcp/analytics/servers
@@ -571,7 +393,7 @@ export function useServerCallVolumes() {
 }
 
 export function useClientCallVolumes() {
-  return useQuery<ClientCallVolume[]>({
+  return usePreviewQuery<ClientCallVolume[]>({
     queryKey: ["mcp", "analytics", "clients"],
     queryFn: async () => {
       await delay(300); // TODO: GET /api/mcp/analytics/clients
@@ -587,7 +409,7 @@ export function useClientCallVolumes() {
 }
 
 export function useUserCallVolumes() {
-  return useQuery<UserCallVolume[]>({
+  return usePreviewQuery<UserCallVolume[]>({
     queryKey: ["mcp", "analytics", "users"],
     queryFn: async () => {
       await delay(300); // TODO: GET /api/mcp/analytics/users
@@ -599,7 +421,7 @@ export function useUserCallVolumes() {
 }
 
 export function useThreatTypeBreakdown() {
-  return useQuery<ThreatTypeCount[]>({
+  return usePreviewQuery<ThreatTypeCount[]>({
     queryKey: ["mcp", "analytics", "threats"],
     queryFn: async () => {
       await delay(250); // TODO: GET /api/mcp/analytics/threats
@@ -616,7 +438,7 @@ export function useThreatTypeBreakdown() {
 }
 
 export function useRiskScoreDistribution() {
-  return useQuery<RiskScoreBucket[]>({
+  return usePreviewQuery<RiskScoreBucket[]>({
     queryKey: ["mcp", "analytics", "risk-distribution"],
     queryFn: async () => {
       await delay(250); // TODO: GET /api/mcp/analytics/risk-distribution
@@ -637,7 +459,7 @@ export function useRiskScoreDistribution() {
 }
 
 export function useLatencyOverTime() {
-  return useQuery<LatencyDataPoint[]>({
+  return usePreviewQuery<LatencyDataPoint[]>({
     queryKey: ["mcp", "analytics", "latency"],
     queryFn: async () => {
       await delay(300); // TODO: GET /api/mcp/analytics/latency
@@ -647,7 +469,7 @@ export function useLatencyOverTime() {
 }
 
 export function useBlockedCallsTrend() {
-  return useQuery<TimeSeriesDataPoint[]>({
+  return usePreviewQuery<TimeSeriesDataPoint[]>({
     queryKey: ["mcp", "analytics", "blocked-trend"],
     queryFn: async () => {
       await delay(300); // TODO: GET /api/mcp/analytics/blocked-trend
@@ -659,7 +481,7 @@ export function useBlockedCallsTrend() {
 // --- Settings ---
 
 export function useAuditLog() {
-  return useQuery<AuditLogEntry[]>({
+  return usePreviewQuery<AuditLogEntry[]>({
     queryKey: ["mcp", "audit"],
     queryFn: async () => {
       await delay(300); // TODO: GET /api/mcp/audit
@@ -669,7 +491,7 @@ export function useAuditLog() {
 }
 
 export function useIntegrations() {
-  return useQuery<IntegrationConfig[]>({
+  return usePreviewQuery<IntegrationConfig[]>({
     queryKey: ["mcp", "integrations"],
     queryFn: async () => {
       await delay(250); // TODO: GET /api/mcp/integrations
@@ -685,7 +507,7 @@ export function useIntegrations() {
 }
 
 export function useBillingPlan() {
-  return useQuery<BillingPlan>({
+  return usePreviewQuery<BillingPlan>({
     queryKey: ["mcp", "billing", "plan"],
     queryFn: async () => {
       await delay(200); // TODO: GET /api/mcp/billing/plan
@@ -695,7 +517,7 @@ export function useBillingPlan() {
 }
 
 export function useInvoices() {
-  return useQuery<Invoice[]>({
+  return usePreviewQuery<Invoice[]>({
     queryKey: ["mcp", "billing", "invoices"],
     queryFn: async () => {
       await delay(200); // TODO: GET /api/mcp/billing/invoices

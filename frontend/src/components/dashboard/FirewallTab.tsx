@@ -135,8 +135,8 @@ export function FirewallTab() {
       await syncFirewallRulesFromEvents();
       await load();
       toast.success("Synced AI tools from detection events!");
-    } catch (e: any) {
-      toast.error("Sync failed: " + e.message);
+    } catch (e) {
+      toast.error("Sync failed: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSyncing(false);
     }
@@ -149,10 +149,10 @@ export function FirewallTab() {
     try {
       await updateFirewallRule({ tool_name: rule.tool_name, domain: rule.domain, status: newStatus });
       toast.success(`${rule.tool_name} set to ${newStatus.toUpperCase()}`);
-    } catch (e: any) {
+    } catch (e) {
       // Revert on failure
       setRules(prev => prev.map(r => r.id === rule.id ? { ...r, status: rule.status } : r));
-      toast.error("Failed to update rule: " + e.message);
+      toast.error("Failed to update rule: " + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -161,8 +161,8 @@ export function FirewallTab() {
     try {
       await deleteFirewallRule(rule.tool_name);
       toast.success(`Removed rule for ${rule.tool_name}`);
-    } catch (e: any) {
-      toast.error("Failed to delete: " + e.message);
+    } catch (e) {
+      toast.error("Failed to delete: " + (e instanceof Error ? e.message : String(e)));
       load();
     }
   };
@@ -173,8 +173,8 @@ export function FirewallTab() {
       await updateFirewallRule(rule);
       await load();
       toast.success(`Rule added for ${rule.tool_name}`);
-    } catch (e: any) {
-      toast.error("Failed to save: " + e.message);
+    } catch (e) {
+      toast.error("Failed to save: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSaving(false);
     }

@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "description": "Root workspace to launch all Devise-CAD microservices simultaneously",
   "scripts": {
-    "install:all": "cd frontend && npm install && cd ../mcp && npm install && cd .. && pip install -r requirements.txt && cd devise-agent/devise-eye && pip install -r requirements.txt",
-    "start": "npx concurrently -k -p \"[{name}]\" -n \"FRONTEND,MCP,API,AGENT\" -c \"cyan,magenta,green,yellow\" \"cd frontend && npm run dev\" \"cd mcp && npx tsx server.ts\" \"python -m uvicorn api.index:app --reload --port 8000\" \"cd devise-agent/devise-eye && python main.py\"",
+    "install:all": "node scripts/dev.mjs install",
+    "start": "node scripts/dev.mjs preview",
+    "dev:demo": "node scripts/dev.mjs demo",
+    "dev:api": "node scripts/dev.mjs api",
+    "dev:gateway": "node scripts/dev.mjs gateway",
+    "dev:agent": "node scripts/dev.mjs agent",
+    "preflight": "node scripts/dev.mjs check",
+    "test:setup": "node --test scripts/dev.test.mjs",
     "test:prompts": "promptfoo test"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
     "promptfoo": "^0.99.0"
   }
 }

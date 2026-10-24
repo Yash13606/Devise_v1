@@ -6,13 +6,14 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  type TooltipProps,
 } from "recharts";
 import { useAnalytics } from "@/hooks/useDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo } from "react";
 
 // Custom tooltip
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
   return (
     <div
@@ -26,7 +27,7 @@ function CustomTooltip({ active, payload, label }: any) {
       }}
     >
       <p style={{ fontWeight: 700, marginBottom: 4 }}>{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <p key={p.name} style={{ color: p.name === "detections" ? "#FF5C1A" : "#94A3B8" }}>
           {p.name === "detections" ? "Detections" : "Violations"}: {p.value}
         </p>

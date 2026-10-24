@@ -67,7 +67,7 @@ export function MyProfilePanel({ isOpen, onClose }: MyProfilePanelProps) {
     }
   };
 
-  const formatDate = (date: any) => {
+  const formatDate = (date: string | { toDate: () => Date } | null | undefined) => {
     if (!date) return "...";
     const d = typeof date === 'string' ? new Date(date) : date.toDate();
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });

@@ -45,6 +45,8 @@ import { UnderstandDashboard } from "./pages/UnderstandDashboard";
 import { StartupsPage } from "./pages/landing/solutions/StartupsPage";
 import { HealthcarePage } from "./pages/landing/solutions/HealthcarePage";
 import { ProfessionalServicesPage } from "./pages/landing/solutions/ProfessionalServicesPage";
+import { PreviewNotice, ReadOnlyPreview, SetupRequired } from "./components/RuntimeStatus";
+import { liveDataAvailable, runtimeConfig } from "./lib/runtimeConfig";
 
 type Tab = "overview" | "live-feed" | "analytics" | "devices" | "alerts" | "subscriptions" | "settings" | "team" | "firewall" | "data-risk";
 
@@ -65,6 +67,7 @@ function Dashboard() {
 
   return (
     <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
+      <ReadOnlyPreview>
       <div
         key={activeTab}
         className="animate-in fade-in duration-300 fill-mode-both"
@@ -96,23 +99,17 @@ function Dashboard() {
         {activeTab === "firewall"   && <FirewallTab />}
         {activeTab === "data-risk"  && <DataRiskTab />}
       </div>
+      </ReadOnlyPreview>
     </DashboardLayout>
   );
 }
 
 const AppContent = () => {
   const { user, loading } = useAuth();
-  // Safety net: if Auth0 OIDC discovery hangs (e.g. placeholder domain is
-  // unreachable and DNS never responds), force-unblock after 3 s so the
-  // landing page is never permanently blank.
-  const [timedOut, setTimedOut] = useState(false);
-  useEffect(() => {
-    if (!loading) return;
-    const id = setTimeout(() => setTimedOut(true), 3000);
-    return () => clearTimeout(id);
-  }, [loading]);
-
-  if (loading && !timedOut) return null;
+  const applicationUnavailable = !runtimeConfig.isDemo && (!runtimeConfig.isConfigured || !liveDataAvailable);
+  const protectedPage = (page: React.ReactNode) => applicationUnavailable ? <SetupRequired />
+    : loading ? <p role="status" className="p-8">Loading your session…</p>
+    : user ? page : <Navigate to="/login" replace />;
 
   return (
     <Routes>
@@ -131,34 +128,34 @@ const AppContent = () => {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/use-cases" element={<UseCasesPage />} />
       <Route path="/demo" element={<DemoPage />} />
-      
+
       {/* Auth Routes */}
-      <Route 
-        path="/login" 
-        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+      <Route
+        path="/login"
+        element={applicationUnavailable ? <SetupRequired /> : user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
       />
-      <Route 
-        path="/signup" 
-        element={user ? <Navigate to="/dashboard" replace /> : <SignupPage />} 
+      <Route
+        path="/signup"
+        element={applicationUnavailable ? <SetupRequired /> : user ? <Navigate to="/dashboard" replace /> : <SignupPage />}
       />
-      
+
       {/* Dashboard Routes (Protected) */}
-      <Route 
-        path="/dashboard/*" 
-        element={user ? <Dashboard /> : <Navigate to="/login" replace />} 
+      <Route
+        path="/dashboard/*"
+        element={protectedPage(<Dashboard />)}
       />
       <Route
         path="/understand"
-        element={user ? <UnderstandDashboard /> : <Navigate to="/login" replace />}
+        element={runtimeConfig.isDemo ? <SetupRequired feature="Code scanning is unavailable in this preview" /> : protectedPage(<UnderstandDashboard />)}
       />
-      
+
       {/* MCP Gateway Dashboard Routes (Protected) */}
-      <Route 
-        path="/mcp/*" 
-        element={user ? <MCPRouter /> : <Navigate to="/login" replace />} 
+      <Route
+        path="/mcp/*"
+        element={protectedPage(<MCPRouter />)}
       />
       <Route path="/trust-security" element={<TrustSecurityPage />} />
-      
+
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -174,6 +171,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <AuthProvider>
+            <PreviewNotice />
             <AppContent />
           </AuthProvider>
         </TooltipProvider>

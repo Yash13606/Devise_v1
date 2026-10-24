@@ -388,10 +388,10 @@ function InviteMemberModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
       setEmail("");
       setRole("member");
       onClose();
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Failed to send invite",
-        description: err?.message || "Something went wrong. Please try again.",
+        description: err instanceof Error ? err.message : "Something went wrong. Please try again.",
         duration: 4000,
       });
     } finally {

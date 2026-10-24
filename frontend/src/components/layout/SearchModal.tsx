@@ -29,6 +29,11 @@ const users = [
   { id: "u3", name: "Sarah K", email: "sarah@devise.ai", dept: "Design", initial: "SK", color: "#8B5CF6" },
 ];
 
+type SearchResult = {
+  type: "event" | "tool" | "user";
+  item: typeof recentEvents[number] | typeof tools[number] | typeof users[number];
+};
+
 export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -39,7 +44,9 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
   useEffect(() => {
     const saved = localStorage.getItem("devise-recent-searches");
     if (saved) {
-      try { setRecentSearches(JSON.parse(saved)); } catch (e) {}
+      try { setRecentSearches(JSON.parse(saved)); } catch {
+        // Ignore malformed stored history and keep the empty default.
+      }
     }
   }, []);
 
@@ -61,13 +68,13 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
 
   const totalResults = filteredEvents.length + filteredTools.length + filteredUsers.length;
 
-  const flatItems: { type: string; item: any; }[] = [
-    ...filteredEvents.map(item => ({ type: "event", item })),
-    ...filteredTools.map(item => ({ type: "tool", item })),
-    ...filteredUsers.map(item => ({ type: "user", item }))
+  const flatItems: SearchResult[] = [
+    ...filteredEvents.map(item => ({ type: "event" as const, item })),
+    ...filteredTools.map(item => ({ type: "tool" as const, item })),
+    ...filteredUsers.map(item => ({ type: "user" as const, item }))
   ];
 
-  const handleSelect = (itemInfo: { type: string; item: any }) => {
+  const handleSelect = (itemInfo: SearchResult) => {
     if (!isQueryEmpty) {
       const newRecents = [query.trim(), ...recentSearches.filter(q => q !== query.trim())].slice(0, 5);
       localStorage.setItem("devise-recent-searches", JSON.stringify(newRecents));

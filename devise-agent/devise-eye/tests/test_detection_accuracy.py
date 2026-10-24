@@ -1,7 +1,6 @@
 """Detection accuracy tests for the Devise-Eye agent registry and matching logic."""
 
 import sys
-import os
 import json
 from pathlib import Path
 
@@ -10,7 +9,7 @@ import pytest
 # Add parent directory to path so imports work from tests/
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from registry import Registry, RegistryEntry, MatchResult
+from registry import LookupHint, Registry
 
 REGISTRY_PATH = str(Path(__file__).parent.parent / "data" / "ai_tools_registry.json")
 
@@ -176,7 +175,8 @@ def test_subdomain_matching(registry, subdomain, expected_tool):
 
 
 # ---------------------------------------------------------------------------
-# CDN IP detection — these should NOT resolve via IP lookup
+# CDN ambiguity — a shared address and process hint do not identify a tool.
+# These exercise the production lookup seam, replacing the removed CDN classifier.
 # ---------------------------------------------------------------------------
 
 CDN_IPS = [
@@ -192,10 +192,13 @@ CDN_IPS = [
 
 
 @pytest.mark.parametrize("cdn_ip", CDN_IPS)
-def test_cdn_ip_is_detected(registry, cdn_ip):
-    assert registry.is_cdn_ip(cdn_ip), (
-        f"Expected {cdn_ip} to be classified as a CDN IP"
-    )
+def test_cdn_ip_with_unrelated_hostname_remains_unknown(registry, cdn_ip):
+    result = registry.lookup(LookupHint(
+        ip=cdn_ip, hostname="unrelated.example", process_name="cursor.exe"
+    ))
+    assert not result.is_match
+    assert result.entry is None
+    assert result.confidence == 0.0
 
 
 @pytest.mark.parametrize("cdn_ip", CDN_IPS)
@@ -212,20 +215,23 @@ def test_cdn_ip_not_in_ip_map(registry, cdn_ip):
 # ---------------------------------------------------------------------------
 
 PROCESS_HINT_CASES = [
-    # (domain, process_name, expected_confidence)
-    ("api2.cursor.sh",                    "cursor.exe",   100),
-    ("api2.cursor.sh",                    "cursor",       100),
-    ("api2.cursor.sh",                    "chrome.exe",   70),  # no match for this entry
-    ("copilot-proxy.githubusercontent.com","code.exe",    100),
-    ("windsurf.ai",                       "windsurf.exe", 100),
-    ("windsurf.ai",                       "windsurf",     100),
+    # Process labels neither strengthen nor weaken hostname evidence. Confidence
+    # is a 0..1 attribution score, replacing stale percentage/process boosting.
+    ("api2.cursor.sh",                    "cursor.exe",   0.95),
+    ("api2.cursor.sh",                    "cursor",       0.95),
+    ("api2.cursor.sh",                    "chrome.exe",   0.95),
+    ("copilot-proxy.githubusercontent.com","code.exe",    0.95),
+    ("windsurf.ai",                       "windsurf.exe", 0.95),
+    ("windsurf.ai",                       "windsurf",     0.95),
 ]
 
 
 @pytest.mark.parametrize("domain,process_name,expected_confidence", PROCESS_HINT_CASES)
 def test_confidence_scoring(registry, domain, process_name, expected_confidence):
-    result = registry.find_match_with_confidence(domain, process_name)
-    assert result is not None, f"No match for {domain}"
+    result = registry.lookup(LookupHint(hostname=domain, process_name=process_name))
+    assert result.is_match, f"No match for {domain}"
+    assert result.entry.domain == domain
+    assert result.match_method == "hostname"
     assert result.confidence == expected_confidence, (
         f"For {domain} + {process_name}: "
         f"expected confidence {expected_confidence}, got {result.confidence}"
@@ -233,26 +239,17 @@ def test_confidence_scoring(registry, domain, process_name, expected_confidence)
 
 
 # ---------------------------------------------------------------------------
-# Process-hint-only lookup (CDN fallback)
+# Process-only labels are not evidence that a connection or AI request happened.
+# Migrate the removed find_by_process_hint API to the current LookupHint seam.
 # ---------------------------------------------------------------------------
 
-def test_find_by_process_hint_cursor(registry):
-    result = registry.find_by_process_hint("cursor.exe")
-    assert result is not None
-    assert result.entry.tool_name == "Cursor AI"
-    assert result.confidence == 60
-
-
-def test_find_by_process_hint_windsurf(registry):
-    result = registry.find_by_process_hint("windsurf")
-    assert result is not None
-    assert "windsurf" in result.entry.tool_name.lower()
-    assert result.confidence == 60
-
-
-def test_find_by_process_hint_unknown(registry):
-    result = registry.find_by_process_hint("notepad.exe")
-    assert result is None
+@pytest.mark.parametrize("process_name", ["cursor.exe", "windsurf", "notepad.exe"])
+def test_process_hint_alone_remains_unknown(registry, process_name):
+    result = registry.lookup(LookupHint(process_name=process_name))
+    assert not result.is_match
+    assert result.entry is None
+    assert result.confidence == 0.0
+    assert result.match_method == "none"
 
 
 # ---------------------------------------------------------------------------

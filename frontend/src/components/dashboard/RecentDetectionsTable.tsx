@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Search, SlidersHorizontal, MoreHorizontal, ChevronLeft, ChevronRight, X, Activity, AlertTriangle, ExternalLink } from "lucide-react";
 import { useEvents } from "@/hooks/useDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { DetectionEvent } from "@/data/mockData";
+import type { DetectionEvent } from "@/services/api";
 
 // ─── Internal row type ─────────────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ function mapDetection(event: DetectionEvent, index: number): Detection {
     process: event.process_name,
     department: event.department || "General",
     status: mapStatus(event),
-    date: new Date(event.timestamp as any).toLocaleString(),
+    date: new Date(event.timestamp).toLocaleString(),
   };
 }
 
@@ -123,7 +123,8 @@ export function RecentDetectionsTable() {
     e.stopPropagation();
     setCheckedIds(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -147,7 +148,7 @@ export function RecentDetectionsTable() {
     const pages: number[] = [];
     const maxButtons = 3;
     let start = Math.max(1, currentPage - 1);
-    let end = Math.min(totalPages, start + maxButtons - 1);
+    const end = Math.min(totalPages, start + maxButtons - 1);
     if (end - start < maxButtons - 1) start = Math.max(1, end - maxButtons + 1);
     for (let i = start; i <= end; i++) pages.push(i);
     return pages;
@@ -361,7 +362,7 @@ export function RecentDetectionsTable() {
                   >
                     {/* Checkbox */}
                     <td style={{ padding: "14px 0 14px 20px", width: 36 }}>
-                      <Checkbox checked={isChecked} onChange={(e) => toggle(row.id, e as any)} />
+                      <Checkbox checked={isChecked} onChange={(e) => toggle(row.id, e)} />
                     </td>
 
                     {/* Order ID */}

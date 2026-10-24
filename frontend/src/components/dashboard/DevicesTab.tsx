@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { useToast } from "@/components/ui/use-toast";
 import { useHeartbeats } from "@/hooks/useDashboard";
-import type { HeartbeatEvent } from "@/data/mockData";
+import type { HeartbeatEvent } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // ─── Types ─────────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { AnalyticsCharts } from "@/components/dashboard/AnalyticsCharts";
 import { useStats } from "@/hooks/useDashboard";
 
-const Analytics = () => {
+const Analytics = ({ onTabChange }: Pick<React.ComponentProps<typeof DashboardLayout>, "onTabChange">) => {
   const { data: stats } = useStats();
 
   const formatCurrency = (val?: number) => {
@@ -13,7 +13,7 @@ const Analytics = () => {
   };
 
   return (
-    <DashboardLayout title="Analytics">
+    <DashboardLayout activeTab="analytics" onTabChange={onTabChange}>
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           <StatsCard title="Total Detections" value={stats?.totalDetections ?? "—"} icon={Activity} variant="primary" />

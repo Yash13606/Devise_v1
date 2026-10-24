@@ -4,7 +4,7 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { AlertsList } from "@/components/dashboard/AlertsList";
 import { useStats, useAlerts } from "@/hooks/useDashboard";
 
-const Alerts = () => {
+const Alerts = ({ onTabChange }: Pick<React.ComponentProps<typeof DashboardLayout>, "onTabChange">) => {
   const { data: stats } = useStats();
   const { data: alerts = [] } = useAlerts();
 
@@ -12,7 +12,7 @@ const Alerts = () => {
   const agentGapCount = alerts.filter(a => a.type === "agent_gap").length;
 
   return (
-    <DashboardLayout title="Alerts">
+    <DashboardLayout activeTab="alerts" onTabChange={onTabChange}>
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatsCard title="Active Alerts" value={stats?.activeAlerts ?? "—"} icon={AlertTriangle} variant="primary" />

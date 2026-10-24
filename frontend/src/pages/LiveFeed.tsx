@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { categories, riskLevels } from "@/lib/aiToolsRegistry";
 import { useEvents, useStats } from "@/hooks/useDashboard";
 
-const LiveFeed = () => {
+const LiveFeed = ({ onTabChange }: Pick<React.ComponentProps<typeof DashboardLayout>, "onTabChange">) => {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [riskFilter, setRiskFilter] = useState<string>("all");
 
@@ -17,7 +17,7 @@ const LiveFeed = () => {
   const events = useMemo(() => eventsData?.events ?? [], [eventsData]);
 
   return (
-    <DashboardLayout title="Live Feed">
+    <DashboardLayout activeTab="live-feed" onTabChange={onTabChange}>
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatsCard title="Total Detections" value={stats?.totalDetections ?? "—"} icon={Activity} variant="primary" subtitle="Last 24h" />

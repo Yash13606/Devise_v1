@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { liveDataAvailable, runtimeConfig } from "@/lib/runtimeConfig";
 import {
   fetchEvents,
   fetchHeartbeats,
@@ -47,6 +48,7 @@ function useRealtimeEvents() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (runtimeConfig.isDemo || !liveDataAvailable) return;
     const channel = supabase
       .channel("realtime:detection_events")
       .on(

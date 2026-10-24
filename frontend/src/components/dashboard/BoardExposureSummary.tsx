@@ -11,7 +11,7 @@ export function BoardExposureSummary() {
       <div className="bg-gray-50/80 border-b border-gray-100 p-4 md:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <h3 className="font-bold text-brand-dark text-lg flex items-center gap-2">
           <Activity className="text-brand-orange" size={20} />
-          AI Exposure Summary — Real-Time Board Report
+          AI Exposure Summary
         </h3>
         <div className="text-xs font-bold text-brand-gray uppercase tracking-widest bg-white border border-gray-200 px-3 py-1.5 rounded-full w-fit">
           Executive View
@@ -72,7 +72,7 @@ export function BoardExposureSummary() {
         
         <div className="flex items-center justify-center gap-2 text-sm font-bold text-brand-dark bg-green-50 border border-green-100 w-fit px-5 py-2.5 rounded-xl mx-auto shadow-sm">
           <CheckCircle size={18} className="text-green-500" />
-          Generated automatically. Updated in real time. Audit-ready.
+          Preview only. Audit evidence is not connected.
         </div>
       </div>
     </div>

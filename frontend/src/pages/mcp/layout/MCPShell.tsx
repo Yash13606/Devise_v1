@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { MCPSidebar } from "./MCPSidebar";
 import { MCPTopBar } from "./MCPTopBar";
+import { ReadOnlyPreview } from "@/components/RuntimeStatus";
 
 /**
  * MCPShell — Root layout wrapper for the Devise Gate MCP Dashboard.
@@ -39,7 +40,9 @@ export function MCPShell() {
             className="flex-1 overflow-auto"
             style={{ padding: 24, backgroundColor: "#FAFBFC" }}
           >
-            <Outlet />
+            <ReadOnlyPreview>
+              <Outlet />
+            </ReadOnlyPreview>
           </main>
         </div>
       </div>

@@ -109,10 +109,10 @@ export function SettingsTab() {
         description: "Your changes have been applied.",
         duration: 3000,
       });
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Failed to save settings",
-        description: err?.message || "Something went wrong. Please try again.",
+        description: err instanceof Error ? err.message : "Something went wrong. Please try again.",
         duration: 4000,
       });
     } finally {

@@ -1,0 +1,6 @@
+devise-agent/prompt_library/
+.claude/skills/
+.agents/
+.claude/
+.codegraph/
+frontend/dist/

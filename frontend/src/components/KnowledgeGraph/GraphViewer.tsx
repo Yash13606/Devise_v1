@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph2D, { type ForceGraphMethods } from 'react-force-graph-2d';
 
 interface Node {
   id: string;
@@ -22,7 +22,7 @@ interface GraphData {
 }
 
 export const GraphViewer: React.FC<{ data: GraphData }> = ({ data }) => {
-  const fgRef = useRef<any>();
+  const fgRef = useRef<ForceGraphMethods<Node, Link>>();
   const [windowSize, setWindowSize] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
@@ -56,8 +56,8 @@ export const GraphViewer: React.FC<{ data: GraphData }> = ({ data }) => {
         linkDirectionalArrowLength={3.5}
         linkDirectionalArrowRelPos={1}
         onNodeClick={(node) => {
-          fgRef.current.centerAt(node.x, node.y, 1000);
-          fgRef.current.zoom(8, 2000);
+          fgRef.current?.centerAt(node.x, node.y, 1000);
+          fgRef.current?.zoom(8, 2000);
         }}
       />
     </div>

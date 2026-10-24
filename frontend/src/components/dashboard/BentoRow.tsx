@@ -203,7 +203,7 @@ export function BentoRow({ onNavigate }: { onNavigate: (tab: string) => void }) 
       <MetricCard
         label="TOTAL AI SPEND"
         value={spend ? formatINR(spend.totalMonthlySpend) : "—"}
-        sub={<GreenUp text="8% this month" />}
+        sub={<RedText text="Billing source not connected" />}
         iconBg="#F0FDF4"
         icon={Briefcase}
         iconColor="#16A34A"
@@ -241,7 +241,7 @@ export function BentoRow({ onNavigate }: { onNavigate: (tab: string) => void }) 
       {/* Card D — Zombie Licenses */}
       <MetricCard
         label="ZOMBIE LICENSES"
-        value={spend?.zombieLicenses ?? 0}
+        value={spend?.zombieLicenses ?? "—"}
         sub={<RedText text={spend ? `${formatINR(spend.zombieCost)} wasted` : "—"} />}
         iconBg="#FEF2F2"
         icon={Trash2}

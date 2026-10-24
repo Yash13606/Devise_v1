@@ -3,7 +3,6 @@
 import json
 import logging
 import os
-import socket
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Any
 from pathlib import Path
@@ -15,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class LookupHint:
-    """Input to Registry.lookup() — supply whatever you have; lookup fills in the rest."""
+    """Lookup context. Only a supplied hostname currently establishes identity.
+
+    IP and process labels are retained for callers, but are not identity proof.
+    """
     ip: Optional[str] = None
     hostname: Optional[str] = None  # pre-resolved (OS cache or reverse DNS)
     process_name: Optional[str] = None
@@ -26,7 +28,8 @@ class MatchResult:
     """Result of Registry.lookup().
 
     is_match is always set; entry, confidence, and match_method are meaningful
-    only when is_match is True.
+    only when is_match is True. Confidence is a 0..1 hostname attribution score,
+    not a probability that an AI request occurred or a measure of usage.
     """
     is_match: bool
     entry: Optional["RegistryEntry"] = None
@@ -111,21 +114,18 @@ class Registry:
         """
         self._entries: List[RegistryEntry] = []
         self._update_url = update_url
-        self._ip_to_entry: Dict[str, RegistryEntry] = {}  # ip -> entry
         self._load_registry(registry_path)
 
     def lookup(self, hint: LookupHint) -> MatchResult:
-        """Unified tool lookup from any available hint.
+        """Identify the most specific registered hostname supplied by the caller.
 
-        Resolution waterfall (highest confidence first):
-          1. Hostname match — exact or subdomain (from OS cache or reverse DNS)
-          2. Preloaded IP map — unambiguous dedicated IPs only
-
-        DNS resolution is the caller's responsibility; supply pre-resolved
-        hostnames via hint.hostname. The IP map covers dedicated IPs that
-        don't need DNS at all.
+        DNS resolution and connection observation are the caller's responsibility.
+        A DNS answer claimed by one registered tool may also serve unregistered
+        sites. Without verified dedicated-IP metadata, IPs and process names
+        cannot establish identity. A hostname match alone does not prove an AI
+        request, license, or billable usage.
         """
-        # Phase 1: Hostname match (OS-cache hostname is very accurate for CDNs)
+        # Hostname evidence can disambiguate tools that share a CDN address.
         if hint.hostname:
             entry = self.find_match(hint.hostname)
             if entry:
@@ -136,62 +136,24 @@ class Registry:
                     match_method="hostname",
                 )
 
-        # Phase 2: Preloaded IP map (dedicated IPs — high confidence)
-        if hint.ip:
-            entry = self._ip_to_entry.get(hint.ip)
-            if entry:
-                return MatchResult(
-                    is_match=True,
-                    entry=entry,
-                    confidence=1.0,
-                    match_method="ip_map",
-                )
-
         return MatchResult.no_match()
 
     def warm_cache(self) -> None:
-        """Resolve all registry domains to IPs and build the fast IP lookup map.
+        """Compatibility hook for startup callers; does not infer IP ownership.
 
-        IPs claimed by more than one tool (shared CDN IPs like Cloudflare)
-        are excluded from the map so they fall through to the DNS-cache /
-        reverse-DNS phase instead.
-
-        Call this explicitly after construction rather than in __init__ so
-        the blocking network I/O happens at a predictable time.
+        The bundled registry has no verified dedicated-IP metadata. Resolving
+        its domains cannot establish exclusivity across the rest of the web,
+        so DNS preloading and IP-only attribution are disabled.
         """
-        ip_claimants: dict = {}  # ip -> list of entries that resolve to it
-
-        for entry in self._entries:
-            try:
-                results = socket.getaddrinfo(entry.domain, None)
-                for r in results:
-                    ip = r[4][0]
-                    if ip not in ip_claimants:
-                        ip_claimants[ip] = []
-                    ip_claimants[ip].append(entry)
-            except Exception:
-                pass
-
-        # Only map IPs that are unambiguously owned by a single tool
-        ambiguous = 0
-        for ip, entries in ip_claimants.items():
-            if len(entries) == 1:
-                self._ip_to_entry[ip] = entries[0]
-            else:
-                ambiguous += 1  # shared CDN IP — skip
-
-        logger.info(
-            f"Pre-resolved {len(self._ip_to_entry)} unambiguous IPs "
-            f"({ambiguous} shared CDN IPs excluded from IP map)"
-        )
+        logger.debug("IP-only registry attribution disabled: no verified ownership metadata")
 
     def preload_dns(self) -> None:
         """Deprecated alias for warm_cache(). Use warm_cache() instead."""
         self.warm_cache()
 
     def find_match_by_ip(self, ip: str) -> Optional["RegistryEntry"]:
-        """Direct IP lookup — works for CDN-hosted tools."""
-        return self._ip_to_entry.get(ip)
+        """Compatibility lookup; IP ownership is currently unverified."""
+        return None
 
     def _load_registry(self, registry_path: Optional[str]) -> None:
         """Load registry from bundled file.
@@ -261,10 +223,11 @@ class Registry:
         Returns:
             Matching RegistryEntry or None
         """
-        for entry in self._entries:
-            if entry.matches(hostname):
-                return entry
-        return None
+        return max(
+            (entry for entry in self._entries if entry.matches(hostname)),
+            key=lambda entry: len(entry.domain),
+            default=None,
+        )
 
     def find_all_matches(self, hostname: str) -> List[RegistryEntry]:
         """Find all registry entries matching hostname.

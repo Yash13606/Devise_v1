@@ -229,13 +229,13 @@ export function MCPSidebar() {
             style={{ width: 8, height: 8, backgroundColor: "#16A34A", flexShrink: 0 }}
           />
           <span style={{ fontSize: 12, color: "#6B7280", fontWeight: 500 }}>
-            Gateway Online
+            Sample gateway
           </span>
           <span
             className="ml-auto"
             style={{ fontSize: 12, color: "#16A34A", fontWeight: 600 }}
           >
-            8ms
+            Offline
           </span>
         </div>
 

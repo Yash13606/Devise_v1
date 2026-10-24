@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { runtimeConfig } from "./runtimeConfig";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -42,7 +43,8 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem("devise_mock_user");
     // Default to pre-authenticated for seamless first-load developer experience
     if (saved === "none") return null;
-    return saved ? JSON.parse(saved) : MOCK_USER;
+    try { return saved ? JSON.parse(saved) : MOCK_USER; }
+    catch { return MOCK_USER; }
   });
 
   const [loading, setLoading] = useState(true);
@@ -138,11 +140,16 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
 // ─── Main Provider Switcher ────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const domain = import.meta.env.VITE_AUTH0_DOMAIN as string;
-  const isPlaceholder = !domain || domain.includes("placeholder");
-
-  if (isPlaceholder) {
+  if (runtimeConfig.isDemo) {
     return <MockAuthProvider>{children}</MockAuthProvider>;
+  }
+
+  if (!runtimeConfig.isConfigured) {
+    const unavailable = () => { throw new Error("Live authentication is not configured."); };
+    return <AuthContext.Provider value={{ user: null, session: null, loading: false,
+      signIn: unavailable, signUp: unavailable, signOut: async () => {}, isDemoMode: false }}>
+      {children}
+    </AuthContext.Provider>;
   }
 
   return <RealAuthProvider>{children}</RealAuthProvider>;

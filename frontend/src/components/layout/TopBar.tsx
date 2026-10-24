@@ -1,4 +1,4 @@
-import { Search, Bell, Info, ChevronDown, AlertTriangle, ShieldAlert, Activity, Monitor } from "lucide-react";
+import { Search, Bell, Info, ChevronDown, AlertTriangle, ShieldAlert, Activity, Monitor, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { SearchModal } from "./SearchModal";
 import { NotificationDropdown } from "./NotificationDropdown";
@@ -11,7 +11,7 @@ type Tab = "overview" | "live-feed" | "analytics" | "devices" | "alerts" | "subs
 
 export interface NotificationItem {
   id: number;
-  icon: any;
+  icon: LucideIcon;
   iconBg: string;
   title: string;
   desc: string;

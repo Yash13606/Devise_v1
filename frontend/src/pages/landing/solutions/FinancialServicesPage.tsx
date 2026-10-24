@@ -13,7 +13,6 @@ export const FinancialServicesPage = () => {
       <section className="relative px-6 py-16 md:py-32 flex flex-col items-center text-center overflow-hidden">
         {/* Subtle Ambient Background */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#E2E8F0] to-[#F5F7FA] -z-10" />
-        <div className="absolute top-0 w-full h-[500px] bg-[url('/images/hero-dots.png')] opacity-5 mix-blend-multiply pointer-events-none -z-10" />
         
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-md border border-white shadow-sm text-slate-600 text-sm font-medium mb-8 animate-fade-in-up">
           For Financial Services &middot; Banking & Wealth Management

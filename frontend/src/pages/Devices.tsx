@@ -4,11 +4,11 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { DevicesTable } from "@/components/dashboard/DevicesTable";
 import { useStats } from "@/hooks/useDashboard";
 
-const Devices = () => {
+const Devices = ({ onTabChange }: Pick<React.ComponentProps<typeof DashboardLayout>, "onTabChange">) => {
   const { data: stats } = useStats();
 
   return (
-    <DashboardLayout title="Devices">
+    <DashboardLayout activeTab="devices" onTabChange={onTabChange}>
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatsCard title="Total Devices" value={stats?.totalDevices ?? "—"} icon={Monitor} variant="primary" />

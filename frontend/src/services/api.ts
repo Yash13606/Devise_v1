@@ -6,7 +6,11 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import { aiToolsRegistry } from "@/lib/aiToolsRegistry";
+import { runtimeConfig } from "@/lib/runtimeConfig";
+
+function unavailable(capability: string): never {
+  throw new Error(`${capability} is not available in this pilot preview.`);
+}
 
 // ─── Interfaces ─────────────────────────────────────────────────────────────
 
@@ -229,17 +233,21 @@ export interface EventsResponse {
 }
 
 // ─── No-ops for legacy call sites ──────────────────────────────────────────
-export function setOrgId(_orgId: string | null) {}
-export function setUserId(_userId: string | null) {}
-export function getOrgId() { return null; }
-export function getUserId() { return null; }
-export function setApiToken(_token: string | null) {}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+// Legacy row contracts remain behind the disabled live client until M1 adds scoped ingestion.
+type DetectionRow = Partial<DetectionEvent> & Partial<SensitivityEvent> & {
+  id: string;
+  data_type?: string;
+  block_reason?: string;
+  policy_matched?: string;
+};
+type HeartbeatRow = Partial<Omit<HeartbeatEvent, "status">> & { status?: string; last_seen?: string };
+type FirewallRow = Partial<FirewallRule> & { id: string; action?: string };
+
 /** Map a raw Supabase detection_events row → DetectionEvent */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapEvent(row: any): DetectionEvent {
+function mapEvent(row: DetectionRow): DetectionEvent {
   return {
     event_id: row.id ?? "",
     user_id: row.user_id ?? "",
@@ -267,8 +275,7 @@ function mapEvent(row: any): DetectionEvent {
 }
 
 /** Map a raw heartbeats row → HeartbeatEvent */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapHeartbeat(row: any): HeartbeatEvent {
+function mapHeartbeat(row: HeartbeatRow): HeartbeatEvent {
   return {
     org_id: row.org_id ?? "",
     device_id: row.device_id ?? "",
@@ -291,6 +298,7 @@ export const fetchEvents = async (
   riskLevel?: string,
   limit = 200,
 ): Promise<EventsResponse> => {
+  if (runtimeConfig.isDemo) return { total: 0, events: [] };
   let query = supabase
     .from("detection_events")
     .select("*", { count: "exact" })
@@ -310,6 +318,7 @@ export const fetchEvents = async (
 };
 
 export const fetchHeartbeats = async (): Promise<HeartbeatEvent[]> => {
+  if (runtimeConfig.isDemo) return [];
   const { data, error } = await supabase
     .from("heartbeats")
     .select("*")
@@ -320,52 +329,23 @@ export const fetchHeartbeats = async (): Promise<HeartbeatEvent[]> => {
 };
 
 export const fetchStats = async (): Promise<StatsResponse> => {
+  if (runtimeConfig.isDemo) return { totalDetections: 0, uniqueTools: 0, highRiskCount: 0, unapprovedCount: 0, onlineDevices: 0, totalDevices: 0, activeAlerts: 0 };
   const [eventsRes, heartbeatsRes] = await Promise.all([
     supabase.from("detection_events").select("id, risk_level, is_approved, tool_name, is_blocked, user_id", { count: "exact" }),
     supabase.from("heartbeats").select("device_id, status"),
   ]);
 
+  if (eventsRes.error) throw new Error(eventsRes.error.message);
+  if (heartbeatsRes.error) throw new Error(heartbeatsRes.error.message);
+
   const events = eventsRes.data ?? [];
   const heartbeats = heartbeatsRes.data ?? [];
 
-  const uniqueTools = new Set(events.map((e: any) => e.tool_name)).size;
-  const highRiskCount = events.filter((e: any) => e.risk_level === "high").length;
-  const unapprovedCount = events.filter((e: any) => !e.is_approved).length;
-  const onlineDevices = heartbeats.filter((h: any) => h.status === "active" || h.status === "online").length;
-  const activeAlerts = events.filter((e: any) => e.risk_level === "high" || e.is_blocked).length;
-
-  // Calculate Spend/Savings based on unapproved paid tools
-  let potentialSavings = 0;
-  let zombieLicenses = 0;
-  
-  // Track unique users per unapproved paid tool
-  const toolUsers: Record<string, Set<string>> = {};
-  
-  events.forEach((e: any) => {
-    if (!e.is_approved) {
-      if (!toolUsers[e.tool_name]) {
-        toolUsers[e.tool_name] = new Set<string>();
-      }
-      toolUsers[e.tool_name].add(e.user_id || e.device_id || 'unknown');
-    }
-  });
-
-  // Calculate cost based on registry
-  for (const [toolName, users] of Object.entries(toolUsers)) {
-    const registryEntry = aiToolsRegistry.find(t => t.tool_name === toolName);
-    if (registryEntry && registryEntry.cost_per_seat) {
-      const activeSeats = users.size;
-      zombieLicenses += activeSeats;
-      // Annual savings calculation
-      potentialSavings += activeSeats * registryEntry.cost_per_seat * 12;
-    }
-  }
-  
-  // Provide some realistic mock data if none is found to populate the UI for the demo
-  if (potentialSavings === 0) {
-     potentialSavings = 124800;
-     zombieLicenses = 186;
-  }
+  const uniqueTools = new Set(events.map((e: DetectionRow) => e.tool_name)).size;
+  const highRiskCount = events.filter((e: DetectionRow) => e.risk_level === "high").length;
+  const unapprovedCount = events.filter((e: DetectionRow) => !e.is_approved).length;
+  const onlineDevices = heartbeats.filter((h: HeartbeatRow) => h.status === "active" || h.status === "online").length;
+  const activeAlerts = events.filter((e: DetectionRow) => e.risk_level === "high" || e.is_blocked).length;
 
   return {
     totalDetections: eventsRes.count ?? events.length,
@@ -375,12 +355,11 @@ export const fetchStats = async (): Promise<StatsResponse> => {
     onlineDevices: onlineDevices || heartbeats.length,
     totalDevices: heartbeats.length,
     activeAlerts,
-    potentialSavings,
-    zombieLicenses,
   };
 };
 
 export const fetchAlerts = async (): Promise<AlertItem[]> => {
+  if (runtimeConfig.isDemo) return [];
   const { data, error } = await supabase
     .from("detection_events")
     .select("id, tool_name, domain, risk_level, timestamp, is_blocked, high_frequency, data_type, sensitivity_flag")
@@ -390,7 +369,7 @@ export const fetchAlerts = async (): Promise<AlertItem[]> => {
 
   if (error) throw new Error(error.message);
 
-  return (data ?? []).map((row: any): AlertItem => {
+  return (data ?? []).map((row: DetectionRow): AlertItem => {
     const isBlocked = row.is_blocked;
     const isHighFreq = row.high_frequency;
     const isDataExposure = row.data_type && row.data_type !== "clean";
@@ -423,6 +402,7 @@ export const fetchAlerts = async (): Promise<AlertItem[]> => {
 };
 
 export const fetchAnalytics = async (): Promise<AnalyticsResponse> => {
+  if (runtimeConfig.isDemo) return { byTool: [], byCategory: [], overTime: [], topProcesses: [] };
   const { data, error } = await supabase
     .from("detection_events")
     .select("tool_name, category, timestamp, process_name")
@@ -435,7 +415,7 @@ export const fetchAnalytics = async (): Promise<AnalyticsResponse> => {
 
   // By tool
   const toolCounts: Record<string, number> = {};
-  events.forEach((e: any) => {
+  events.forEach((e: Pick<DetectionEvent, "tool_name" | "category" | "timestamp" | "process_name">) => {
     toolCounts[e.tool_name] = (toolCounts[e.tool_name] ?? 0) + 1;
   });
   const byTool = Object.entries(toolCounts)
@@ -445,7 +425,7 @@ export const fetchAnalytics = async (): Promise<AnalyticsResponse> => {
 
   // By category
   const catCounts: Record<string, number> = {};
-  events.forEach((e: any) => {
+  events.forEach((e: Pick<DetectionEvent, "tool_name" | "category" | "timestamp" | "process_name">) => {
     const cat = e.category || "Unknown";
     catCounts[cat] = (catCounts[cat] ?? 0) + 1;
   });
@@ -455,7 +435,7 @@ export const fetchAnalytics = async (): Promise<AnalyticsResponse> => {
 
   // Over time (last 24h by hour)
   const hourCounts: Record<string, number> = {};
-  events.forEach((e: any) => {
+  events.forEach((e: Pick<DetectionEvent, "tool_name" | "category" | "timestamp" | "process_name">) => {
     if (!e.timestamp) return;
     const hour = new Date(e.timestamp).toISOString().slice(0, 13) + ":00";
     hourCounts[hour] = (hourCounts[hour] ?? 0) + 1;
@@ -467,7 +447,7 @@ export const fetchAnalytics = async (): Promise<AnalyticsResponse> => {
 
   // Top processes
   const procCounts: Record<string, number> = {};
-  events.forEach((e: any) => {
+  events.forEach((e: Pick<DetectionEvent, "tool_name" | "category" | "timestamp" | "process_name">) => {
     const proc = e.process_name || "unknown";
     procCounts[proc] = (procCounts[proc] ?? 0) + 1;
   });
@@ -482,6 +462,7 @@ export const fetchAnalytics = async (): Promise<AnalyticsResponse> => {
 // ─── Firewall ────────────────────────────────────────────────────────────────
 
 export const fetchFirewallRules = async (): Promise<FirewallRule[]> => {
+  if (runtimeConfig.isDemo) return [];
   const { data, error } = await supabase
     .from("firewall_rules")
     .select("*")
@@ -489,7 +470,7 @@ export const fetchFirewallRules = async (): Promise<FirewallRule[]> => {
 
   if (error) throw new Error(error.message);
 
-  return (data ?? []).map((row: any): FirewallRule => ({
+  return (data ?? []).map((row: FirewallRow): FirewallRule => ({
     id: row.id,
     tool_name: row.tool_name ?? "",
     domain: row.domain ?? "",
@@ -501,29 +482,13 @@ export const fetchFirewallRules = async (): Promise<FirewallRule[]> => {
 };
 
 export const updateFirewallRule = async (
-  rule: Omit<FirewallRule, "id" | "block_count" | "updated_at" | "updated_by">
-): Promise<{ status: string }> => {
-  const { error } = await supabase
-    .from("firewall_rules")
-    .upsert({
-      domain: rule.domain,
-      tool_name: rule.tool_name,
-      action: rule.status === "blocked" ? "block" : "allow",
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "domain" });
-  if (error) throw new Error(error.message);
-  return { status: "ok" };
-};
+  _rule: Omit<FirewallRule, "id" | "block_count" | "updated_at" | "updated_by">
+): Promise<{ status: string }> => unavailable("Firewall changes");
 
-export const deleteFirewallRule = async (toolName: string): Promise<void> => {
-  const { error } = await supabase
-    .from("firewall_rules")
-    .delete()
-    .eq("tool_name", toolName);
-  if (error) throw new Error(error.message);
-};
+export const deleteFirewallRule = async (_toolName: string): Promise<void> => unavailable("Firewall changes");
 
 export const fetchBlockEvents = async (_limit = 100): Promise<BlockEvent[]> => {
+  if (runtimeConfig.isDemo) return [];
   const { data, error } = await supabase
     .from("detection_events")
     .select("id, tool_name, domain, user_id, device_id, timestamp, block_reason, policy_matched, org_id")
@@ -533,7 +498,7 @@ export const fetchBlockEvents = async (_limit = 100): Promise<BlockEvent[]> => {
 
   if (error) throw new Error(error.message);
 
-  return (data ?? []).map((row: any): BlockEvent => ({
+  return (data ?? []).map((row: DetectionRow): BlockEvent => ({
     id: row.id,
     event_id: row.id,
     tool_name: row.tool_name,
@@ -566,21 +531,17 @@ export const fetchFirewallStats = async (): Promise<FirewallStats> => {
   return { blockedToday, blockEventsThisWeek, policyViolations, complianceScore };
 };
 
-export const syncFirewallRulesFromEvents = async (): Promise<void> => {};
+export const syncFirewallRulesFromEvents = async (): Promise<void> => unavailable("syncFirewallRulesFromEvents");
 
 // ─── Stubs for missing tables (return safe empty defaults) ──────────────────
 
-export const fetchSubscriptions = async (): Promise<SubscriptionItem[]> => [];
+export const fetchSubscriptions = async (): Promise<SubscriptionItem[]> =>
+  runtimeConfig.isDemo ? [] : unavailable("Subscriptions");
 
-export const fetchSpendOverview = async (): Promise<SpendOverview> => ({
-  totalMonthlySpend: 0,
-  monthlyBudget: 0,
-  budgetRemaining: 0,
-  zombieLicenses: 0,
-  zombieCost: 0,
-});
+export const fetchSpendOverview = async (): Promise<SpendOverview> => unavailable("Measured spend");
 
 export const fetchTeam = async (): Promise<TeamResponse> => {
+  if (runtimeConfig.isDemo) return { members: [], invites: [] };
   const { data, error } = await supabase
     .from("detection_events")
     .select("user_id, user_email, department, timestamp")
@@ -589,9 +550,9 @@ export const fetchTeam = async (): Promise<TeamResponse> => {
 
   if (error) throw new Error(error.message);
 
-  const membersMap = new Map<string, any>();
+  const membersMap = new Map<string, TeamResponse["members"][number]>();
 
-  (data ?? []).forEach((row: any) => {
+  (data ?? []).forEach((row: Pick<DetectionEvent, "user_id" | "user_email" | "department" | "timestamp">) => {
     const email = row.user_email || row.user_id || "unknown";
     if (email === "unknown" || email === "") return;
     
@@ -614,7 +575,7 @@ export const fetchTeam = async (): Promise<TeamResponse> => {
   };
 };
 
-export const fetchSettings = async (): Promise<OrgSettings> => ({
+export const fetchSettings = async (): Promise<OrgSettings> => runtimeConfig.isDemo ? ({
   id: "default",
   org_id: "default",
   monthly_budget: 10000,
@@ -625,9 +586,9 @@ export const fetchSettings = async (): Promise<OrgSettings> => ({
   notification_email: true,
   notification_slack: false,
   slack_webhook_url: null,
-});
+}) : unavailable("fetchSettings");
 
-export const fetchMe = async (): Promise<UserProfile> => ({
+export const fetchMe = async (): Promise<UserProfile> => runtimeConfig.isDemo ? ({
   id: "local",
   org_id: "default",
   full_name: "Admin User",
@@ -637,11 +598,12 @@ export const fetchMe = async (): Promise<UserProfile> => ({
   avatar_url: null,
   org_name: "My Organization",
   org_slug: "my-org",
-});
+}) : unavailable("fetchMe");
 
 export const getUserDetectionCount = async (_email: string): Promise<number> => 0;
 
 export const fetchSensitivityEvents = async (): Promise<SensitivityEvent[]> => {
+  if (runtimeConfig.isDemo) return [];
   // Use detection_events rows that have sensitivity data
   const { data, error } = await supabase
     .from("detection_events")
@@ -652,7 +614,7 @@ export const fetchSensitivityEvents = async (): Promise<SensitivityEvent[]> => {
 
   if (error) return [];
 
-  return (data ?? []).map((row: any): SensitivityEvent => ({
+  return (data ?? []).map((row: DetectionRow): SensitivityEvent => ({
     id: row.id,
     event_id: row.id,
     tool_name: row.tool_name ?? "",
@@ -690,13 +652,7 @@ export const fetchDataRiskStats = async (): Promise<DataRiskStats> => {
   };
 };
 
-export const markSensitivityEventReviewed = async (eventId: string): Promise<void> => {
-  const { error } = await supabase
-    .from("detection_events")
-    .update({ reviewed: true })
-    .eq("id", eventId);
-  if (error) throw new Error(error.message);
-};
+export const markSensitivityEventReviewed = async (_eventId: string): Promise<void> => unavailable("Reviewing events");
 
 export const subscribeToHighRiskEvents = (
   _orgId: string,
@@ -706,30 +662,30 @@ export const subscribeToHighRiskEvents = (
     try {
       const events = await fetchSensitivityEvents();
       callback(events.filter((e) => e.sensitivity_score >= 60).slice(0, 20));
-    } catch (_) {}
+    } catch { return; }
   };
   poll();
   const interval = setInterval(poll, 10000);
   return () => clearInterval(interval);
 };
 
-export const rebuildEmployeeRiskScores = async (): Promise<void> => {};
+export const rebuildEmployeeRiskScores = async (): Promise<void> => unavailable("rebuildEmployeeRiskScores");
 
 // ─── Mutations (stubs for missing tables) ──────────────────────────────────
 
 export const updateMe = async (_data: Partial<UserProfile>): Promise<{ status: string }> =>
-  ({ status: "ok" });
+  unavailable("Saving changes");
 
-export const updateLastActive = async (): Promise<void> => {};
+export const updateLastActive = async (): Promise<void> => unavailable("updateLastActive");
 
 export const dismissAlert = async (alertId: string): Promise<{ status: string; id: string }> =>
-  ({ status: "ok", id: alertId });
+  unavailable("Updating alerts");
 
 export const resolveAlert = async (alertId: string): Promise<{ status: string; id: string }> =>
-  ({ status: "ok", id: alertId });
+  unavailable("Updating alerts");
 
 export const inviteTeamMember = async (_email: string, _role = "member"): Promise<{ status: string; email: string }> =>
-  ({ status: "ok", email: _email });
+  unavailable("Team invitations");
 
 export const updateSettings = async (_settings: Partial<OrgSettings>): Promise<{ status: string }> =>
-  ({ status: "ok" });
+  unavailable("Saving changes");
