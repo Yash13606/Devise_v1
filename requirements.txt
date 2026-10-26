@@ -7,3 +7,5 @@ httpx>=0.25.0
 tree-sitter
 tree-sitter-python
 tree-sitter-javascript
+psycopg[binary]>=3.2,<4
+cryptography>=42,<47

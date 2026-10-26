@@ -3,8 +3,7 @@ import { liveDataAvailable, liveDataMessage, runtimeConfig } from "./runtimeConf
 
 // Fall back to stubs so createClient never throws at module-load time when
 // the env file is missing or incomplete. Real requests will fail gracefully.
-const supabaseUrl = runtimeConfig.isConfigured && !runtimeConfig.isDemo
-  ? runtimeConfig.supabaseUrl : "https://unconfigured.invalid";
+const supabaseUrl = "https://unconfigured.invalid";
 const supabaseKey = runtimeConfig.supabaseKey || "unconfigured";
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {

@@ -4,3 +4,7 @@ devise-agent/prompt_library/
 .claude/
 .codegraph/
 frontend/dist/
+.local/
+.venv/
+.codex/
+mcp-gateway/dist/

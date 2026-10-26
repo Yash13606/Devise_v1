@@ -1,0 +1,3 @@
+source_id,kind,vendor,amount_minor,currency,period_start,period_end,source
+example-usd-invoice,invoice,Example AI,1234,USD,2026-10-01,2026-10-31,synthetic example replace with actual invoice
+example-inr-subscription,subscription,Example Local,50000,INR,2026-10-01,2026-10-31,synthetic example replace with actual subscription charge

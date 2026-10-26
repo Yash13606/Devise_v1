@@ -18,7 +18,7 @@ describe("pilot status", () => {
 
   it("labels demo as read-only and distinguishes it from live monitoring", () => {
     config.isDemo = true;
-    render(<PreviewNotice />);
+    render(<MemoryRouter><PreviewNotice /></MemoryRouter>);
     expect(screen.getByRole("status")).toHaveTextContent("read-only sample screens");
     expect(screen.getByRole("status")).toHaveTextContent("No live monitoring or saved changes");
   });

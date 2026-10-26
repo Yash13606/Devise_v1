@@ -9,6 +9,7 @@ import os
 import platform
 import sqlite3
 import threading
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 import queue as std_queue
@@ -23,6 +24,102 @@ BATCH_SIZE = 100
 # Backoff intervals in seconds
 BACKOFF_INTERVALS = [30, 60, 120, 300]
 MAX_RETRIES = 4
+
+
+class QueueFull(RuntimeError):
+    """No record was evicted; caller must visibly stop observation."""
+
+
+class SecureEventQueue:
+    """Supported pilot queue: Fernet encrypted records, bounded retained failures.
+
+    Queue metadata (counts/times/error codes) is plaintext. Event bodies are always
+    encrypted with a random key protected by Windows DPAPI in the credential store.
+    Dead letters consume capacity until the operator explicitly forgets the agent.
+    """
+    def __init__(self, path, key, capacity=10000, ttl=7 * 86400, clock=None):
+        import time
+        from cryptography.fernet import Fernet
+        self.path = Path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.cipher = Fernet(key)
+        self.capacity = capacity
+        self.ttl = ttl
+        self.clock = clock or time.time
+        self._lock = threading.RLock()
+        with self._connect() as conn:
+            conn.execute("CREATE TABLE IF NOT EXISTS pilot_events (event_id TEXT PRIMARY KEY, payload BLOB NOT NULL, created REAL NOT NULL, status TEXT NOT NULL, error TEXT)")
+            conn.execute("CREATE TABLE IF NOT EXISTS pilot_status (key TEXT PRIMARY KEY, value TEXT)")
+
+    @contextmanager
+    def _connect(self):
+        conn = sqlite3.connect(self.path, timeout=10)
+        try:
+            with conn:
+                conn.execute("PRAGMA secure_delete=ON")
+                yield conn
+        finally:
+            # SQLite's own context manager commits/rolls back; it does not close.
+            # Explicit close permits immediate Windows forget/upgrade operations.
+            conn.close()
+
+    def _expire(self, conn):
+        cursor = conn.execute("UPDATE pilot_events SET status='dead_letter',error='expired' WHERE status='pending' AND created<?", (self.clock() - self.ttl,))
+        if cursor.rowcount:
+            self._error(conn, "expired")
+
+    @staticmethod
+    def _error(conn, reason):
+        conn.execute("INSERT OR REPLACE INTO pilot_status VALUES ('last_error',?)", (reason,))
+
+    def record_error(self, reason):
+        with self._lock, self._connect() as conn:
+            self._error(conn, reason)
+
+    def enqueue(self, event):
+        raw = json.dumps(event, sort_keys=True, separators=(",", ":")).encode()
+        if len(raw) > 16384:
+            self.record_error("event_too_large")
+            raise ValueError("event exceeds 16384 bytes")
+        full = False
+        with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            self._expire(conn)
+            old = conn.execute("SELECT payload FROM pilot_events WHERE event_id=?", (event["event_id"],)).fetchone()
+            if old:
+                if self.cipher.decrypt(old[0]) != raw:
+                    raise ValueError("event id conflict")
+                return False
+            if conn.execute("SELECT COUNT(*) FROM pilot_events").fetchone()[0] >= self.capacity:
+                self._error(conn, "queue_full")
+                full = True
+            else:
+                conn.execute("INSERT INTO pilot_events VALUES (?,?,?,'pending',NULL)", (event["event_id"], self.cipher.encrypt(raw), self.clock()))
+        if full:
+            raise QueueFull("Encrypted queue full; no records evicted. Resolve delivery or explicitly forget local data.")
+        return True
+
+    def pending(self, limit=100):
+        with self._lock, self._connect() as conn:
+            self._expire(conn)
+            rows = conn.execute("SELECT event_id,payload FROM pilot_events WHERE status='pending' ORDER BY created,rowid LIMIT ?", (min(100, max(1, limit)),)).fetchall()
+            return [{"event_id": row[0], "event": json.loads(self.cipher.decrypt(row[1]))} for row in rows]
+
+    def acknowledge(self, ids):
+        with self._lock, self._connect() as conn:
+            conn.executemany("DELETE FROM pilot_events WHERE event_id=?", [(value,) for value in ids])
+
+    def quarantine(self, ids, reason):
+        with self._lock, self._connect() as conn:
+            conn.executemany("UPDATE pilot_events SET status='dead_letter',error=? WHERE event_id=?", [(reason, value) for value in ids])
+            self._error(conn, reason)
+
+    def status(self):
+        with self._lock, self._connect() as conn:
+            self._expire(conn)
+            counts = dict(conn.execute("SELECT status,COUNT(*) FROM pilot_events GROUP BY status"))
+            error = conn.execute("SELECT value FROM pilot_status WHERE key='last_error'").fetchone()
+            return {"pending": counts.get("pending", 0), "dead_letter": counts.get("dead_letter", 0), "capacity": self.capacity, "last_error": error[0] if error else None}
 
 
 class DateTimeEncoder(json.JSONEncoder):

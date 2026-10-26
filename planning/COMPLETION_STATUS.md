@@ -1,138 +1,57 @@
 # Devise completion ledger
 
-Updated: 2026-10-24
+Updated: 2026-10-26. Target: **Windows-first pilot, then expand**. The owner approved the pilot design and instructed completion of locally achievable work while external credentials are obtained.
 
-Target: Windows-first pilot, then expand. The owner approved the design and instructed M0 implementation in this session. Read [WINDOWS_PILOT_DESIGN.md](WINDOWS_PILOT_DESIGN.md) before implementation and [SKILLS_AND_WORKFLOW.md](SKILLS_AND_WORKFLOW.md) for installed workflows.
+**Current boundary:** the local trusted data path and supported loopback policy adapter are implemented. This is not a configured cloud/customer release. Use [README](../README.md), [local setup](LOCAL_SETUP.md), [verification](LOCAL_VERIFICATION.md) and [deployment/operator steps](DEPLOYMENT.md).
 
-## M0 delivery evidence
+## Delivered locally
 
-M0's local implementation and checks are delivered. This is an honest UI/development baseline, not a configured customer pilot. M1-M5 remain open.
+| Area | Implementation/evidence | Remaining boundary |
+|---|---|---|
+| M0 startup and honesty | Explicit local/live/demo modes, one root start command, real readiness, read-only demo, disabled legacy direct-table access | Existing frontend warnings/performance debt remain |
+| M1 identity/storage | Versioned migrations; restricted Postgres role/forced RLS; server memberships; separate human/device credentials; hashed single-use enrollment/revocation; durable idempotent ingestion | Real Auth0 and Supabase project/grant/role/network configuration still require credentials |
+| M2 Windows delivery | Supported source CLI; Windows DPAPI; encrypted bounded queue; explicit metadata consent; pause/resume/forget; independent observation/heartbeat/delivery scheduling and bounded retry; live config propagation | Clean-device install/service startup/upgrade/uninstall and customer attribution remain unverified |
+| M3 request governance | Tenant-versioned structured policies; literal/credential/email conditions; allow/block/warn/redact/review; encrypted expiring pending content; real HTTP dispatch; exact-request replay protection; serialized audit chain and latest/older pagination | Only the controlled loopback JSON HTTP integration is supported; real client/upstream/transport, SSE/cancellation/resumption and production content decisions remain open |
+| M4 dashboard/spend | Real scoped workspace/events/devices/settings/profile/team; validated manual/CSV billing records; exact currency/period totals; metadata export and confirmed expired-event retention | No vendor usage connectors, currency conversion, invented savings, email invitations, SSO/SCIM or complete legal erasure workflow |
+| M5 local delivery assets | Hash-locked Python dependencies; CI workflow; Vercel frontend/Render API configuration; unsigned portable Windows package and smoke checks; setup/operator/recovery docs | Remote cloud, signing, installed-device lifecycle, backups/restore and owner/customer acceptance are separate gates |
 
-| Check | Final result |
-| --- | --- |
-| `npm run test:setup` | 3 passed |
-| `npm run typecheck --prefix frontend` | PASS, without relaxing compiler flags |
-| `npm run lint --prefix frontend` | 0 errors, 12 warnings (3 hook-dependency and 9 Fast Refresh export warnings) |
-| `npm test --prefix frontend` | 19 passed across 6 files, including mode/authentication, missing configuration, truthful API results, disabled demo actions and scanner route isolation |
-| `npm run build --prefix frontend` | PASS; missing hero asset warning removed |
-| `python -m pytest -q` | 121 passed (118 registry tests and 3 API tests); root discovery excludes manual traffic scripts |
-| `npm run preflight` | Readiness report succeeds and identifies unfinished services without exposing setting values |
-| `npm run dev:agent` / `npm run dev:gateway` | Each exits 1 with an explicit implementation/configuration explanation; no service is launched |
-| Browser: default live `/dashboard` without settings | Setup screen names the missing keys; no demo administrator and no Supabase/Auth0 request observed |
-| Browser: explicit demo `/dashboard` and `/mcp` | Visible read-only/sample notice, disabled action surface, navigation available |
-| Browser: demo `/understand` | Unavailable state; no scanner mounted and no scan request observed |
-| Skill setup | 156 project-local entry points validated; gstack native Codex runtime navigated the running UI and produced inspected screenshots |
-| `graphify update .` | AST graph refreshed: 2,056 nodes, 3,553 edges; graph limitations below |
+## Original gap disposition
 
-Implementation changes include corrected launch paths and port 8081, explicit `VITE_APP_MODE`, read-only demos, unavailable live access until M1 authorization, no fabricated savings or successful no-op writes, 501 event responses instead of discarded-event acknowledgements, precise hostname matching, conservative IP/process attribution, and current setup documentation.
+| IDs | Current disposition |
+|---|---|
+| M0-01..08 | Local baseline delivered; warnings and large bundle recorded in verification |
+| M1-01,02,03,04,05,08 | Implemented and exercised locally, including spoof/replay/conflict/revocation cases |
+| M1-06,07 | Gateway public ledger removed; backend membership and RLS/grants tested. Hosted Supabase policies/roles/subscriptions still need configured-project verification |
+| M2-01,02,04 | Scoped transport, encrypted queue/restart/recovery, independent scheduling and actual config updates implemented/tested |
+| M2-03 | Registry remains 204 entries with hostname evidence/ambiguity limits; no 6500-tool or universal visibility claim |
+| M2-05 | Device identity is authoritative; no fabricated employee email/department. Directory-backed employee assignment remains a later integration |
+| M2-06 | Source lifecycle and unsigned portable smoke verified on this machine; clean-device installed lifecycle is open |
+| M3-01,04,05,06 | Versioned rules, deterministic supported-text inspection, persisted reviews/results and scoped audit implemented |
+| M3-02 | Supported main no longer runs legacy process termination. Observation is not prevention; actual request adapter outcomes are separate |
+| M3-03,07 | Real counter-proven loopback HTTP execution delivered. Customer-client/protocol coverage and other content/app capture remain unimplemented |
+| M4-01,02,03,05 | Source-based spend and actual scoped dashboard actions delivered for supported features; unavailable features do not report success |
+| M4-04 | Scoped membership/team view and private operator provisioning implemented. Email invites/enterprise SSO/SCIM/sessions remain unavailable |
+| M4-06 | Code scan/tour/reviewer remain explicitly unavailable (HTTP501); unrestricted server filesystem scanning is not exposed |
+| M5-01 | Consent/status, metadata minimization, request-content TTL, export and bounded confirmed event retention implemented. Final owner privacy/result retention/legal deletion scope remains open |
+| M5-02,03 | Local proof is delivered; installed clean-device and configured deployment acceptance remain open |
+| M5-04 | Tracked reproducible GitHub Actions workflow added; remote run status must be verified separately from the workflow file |
+| M5-05 | Portable version/hash manifest, source/run recovery and operator handoff supplied; signed release/rollback drills remain open |
+| M5-06 | macOS/Linux endpoint capture, universal inspection and proprietary-model parity are expansion work, outside accepted Windows pilot |
 
-Remaining baseline concerns: frontend bundle approximately 2.13 MB / 579 KB gzip, old Browserslist data, one ambiguous Tailwind animation utility, mixed static/dynamic imports, existing hook/Fast Refresh and React Router migration warnings. Python verification ran on the available Python 3.13 environment; a clean Python 3.12 install and a fully pinned Python dependency lock are not verified. The global Python environment emits a RequestsDependencyWarning. These are not configured-cloud, installed-device, or release evidence.
+## Review and proof
 
-Graph limitations: the AST updater reports 11 partly extracted source files, 3 zero-node data/config files, and no SQL extraction because `tree_sitter_sql` is absent. TypeScript compilation passes; graph parser warnings do not establish compiler failures. Community names partly use hub-derived labels after the update. Semantic documentation extraction was not run.
+Independent reviews found and drove fixes for pause/config races, Unicode redaction, abandoned executing-content expiry, heartbeat/delivery scheduling and audit truncation. Clean-environment verification additionally caught SQLite file-handle leakage affecting Windows forget and interval-contract/atomic-update mismatch. The final text-inspection review caught a quoted-credential overspan; its delimiter-specific fix passed scoped re-review.
 
-Screenshots, network observations, installation hashes and source revisions are local in `.agents/setup/`; [SKILLS_INSTALLATION.md](SKILLS_INSTALLATION.md) is the portable setup summary. Git history and the remote branch establish publication status; this evidence record does not imply deployment or customer-pilot readiness.
+Exact current test counts, actual outage/recovery timing, package identity, browser evidence and warnings are in [LOCAL_VERIFICATION.md](LOCAL_VERIFICATION.md). Evidence distinguishes real local HTTP/Postgres/Windows operations from synthetic test inputs and external completion.
 
-## Pre-change evidence recorded this session
+## Owner/external release inputs
 
-| Check | Result | Meaning |
-| --- | --- | --- |
-| Live GitHub head versus local head | Both `818ad409ef2d691d90ade239ead6dcdc75eca1b0` | No unpushed commits at inspection |
-| `frontend: npm run build` | PASS, with warnings | Assets bundle; this does not type-check or prove data integrations |
-| `frontend: npm test -- --reporter=dot` | 1 test passed | Only the existing example test; no substantial UI coverage established |
-| `frontend: npx tsc --noEmit -p tsconfig.app.json` | FAIL | Heartbeat contract, dashboard props, and animation variant typing errors |
-| `python -m pytest devise-agent/devise-eye/tests/test_detection_accuracy.py -q` | 81 passed, 25 failed | Existing registry API/coverage expectations do not match implementation |
-| Common local environment files | Absent | No configured-cloud integration proof |
-| Architecture survey | Source review completed by an independent agent | Findings below; no runtime security certification |
-| Gstack setup | Native Codex project setup completed, version 1.91.186.0 | Runtime/browser smoke validation recorded in skills manifest when complete |
+1. Auth0 tenant/SPA/API registration, verified subjects and approved organization membership.
+2. Supabase region, operator/runtime connections, hosted role/RLS/grant validation and backup/restore.
+3. Vercel frontend/Render API projects, deployed URLs, exact CORS/HTTPS and environment secrets.
+4. First real MCP client/upstream/transport and its permitted tools/authentication.
+5. Pending-request/result retention, consent wording, deletion requirements and pilot-device approval.
+6. Publisher identity/signing route, clean Windows test device and install/upgrade/uninstall acceptance.
+7. Actual billing/usage source records when demonstrating real spend rather than explicitly synthetic examples.
 
-Frontend build warnings include the unresolved `/images/hero-dots.png` asset, an approximately 1.98 MB JavaScript bundle before gzip, a duplicate static/dynamic import, old browser compatibility data, and an ambiguous animation class. They are baseline findings, not regressions introduced by this setup work.
-
-## Gap inventory and acceptance
-
-M0 items below are implemented for the local preview, as verified above. M1-M5 are open. Dependencies are milestone order, not percentage estimates.
-
-### M0 — Reproducible and honest baseline
-
-Status: local implementation delivered; remaining warning/clean-environment concerns are listed above.
-
-| ID | Gap and source evidence | Required result |
-| --- | --- | --- |
-| M0-01 | Root `package.json` references missing `mcp/`; `start.bat` omits the existing gateway | One documented startup path uses real paths/ports and reports unavailable services |
-| M0-02 | Common environment files absent; Supabase uses placeholder defaults | Examples and preflight validation name missing keys without printing secrets |
-| M0-03 | `AuthContext.tsx:40-45,140-145` silently supplies a demo administrator | Demo is explicit and visibly marked; production configuration failure cannot authorize access |
-| M0-04 | `services/api.ts:364-367` fabricates savings/license totals; many mutations return success without persistence | Live mode displays unknown/empty/error honestly; no successful no-op actions |
-| M0-05 | Registry suite has 25 failures; methods expected by tests are missing | Reconciled evidence/confidence contract, correct API hostname specificity, shared-CDN negatives, passing meaningful suite |
-| M0-06 | TypeScript check fails despite Vite build passing | Type check passes; use shared live-data types rather than mock types; do not hide errors through relaxed flags |
-| M0-07 | Missing asset, heavy eager bundle, weak frontend test | Asset resolves; representative dashboard states tested; baseline performance recorded before optimization |
-| M0-08 | README references missing docs and removed workflows | Current commands, environment/setup guide, and checks are reproducible |
-
-### M1 — Identity and durable ingestion
-
-| ID | Gap and source evidence | Required result |
-| --- | --- | --- |
-| M1-01 | `api/index.py:25-32` acknowledges events without storage | Validated event ingestion persists before acknowledging and retrieves actual scoped rows |
-| M1-02 | `event_builder.py:104-122` emits columns absent from `supabase_schema.sql:16-50` | Versioned migrations match the emitted contract and run from an empty database |
-| M1-03 | `reporter.py:59-65` uses database key bearer directly; `settings.py:60-65` falls back to local organization | Enrollment, scoped hashed device tokens, revocation, trusted server-side tenant derivation |
-| M1-04 | `services/api.ts:232-236` tenant/token setters do nothing; reads at `:294-319` lack tenant scoping | Membership-based backend reads/mutations, tenant-specific cache keys and cache clearing |
-| M1-05 | Authentication and data authorization are disconnected | Auth0 JWT verification and server-side organization membership/roles; spoofed tenant/role rejected |
-| M1-06 | Service-role ledger reads are unscoped (`mcp-gateway/server.ts:198-204`) | Authenticated tenant-scoped evidence; public test/ledger routes removed or development-gated |
-| M1-07 | No proven grant/RLS isolation for checked-in schema | Real two-tenant negative read/write tests, including subscriptions and service-role paths |
-| M1-08 | No event idempotency/replay contract | Durable unique event IDs, duplicate retry handling, conflicting ID and revoked-token rejection |
-
-### M2 — Windows observation and delivery
-
-| ID | Gap and source evidence | Required result |
-| --- | --- | --- |
-| M2-01 | Agent bypasses the backend through direct Supabase writes | Agent sends bounded authenticated batches to ingestion; no database service key shipped |
-| M2-02 | Queue/retry code exists without end-to-end acceptance evidence | Offline/restart/reconnect test proves encryption, bounded storage, no silent loss and no duplicates |
-| M2-03 | 204 registry entries versus 6,500+ product claim | Versioned supported-coverage inventory, matching method/confidence and ambiguous/unknown states |
-| M2-04 | Settings snapshots built once (`main.py:40-45,76-98`); config polling only updates Config | Versioned config update actually reaches live dependent objects and is acknowledged |
-| M2-05 | Device/user/department identity partly inferred from OS context | Device identity authoritative; user attribution source visible; no fabricated work email |
-| M2-06 | Installers/binary exist, lifecycle not validated | Clean Windows enrollment, restart, recovery, revocation and uninstall evidence |
-
-### M3 — Supported request policy and enforcement
-
-| ID | Gap and source evidence | Required result |
-| --- | --- | --- |
-| M3-01 | UI firewall upsert (`api.ts:503-513`) conflicts on a missing unique key and omits required tenant | Authorized, versioned policy storage with composite tenant keys and live propagation |
-| M3-02 | PID termination happens after connection; failures still appear blocked (`main.py:193-249`) | Capability labels distinguish observation, attempted termination, and prevented request; actual result recorded |
-| M3-03 | Gateway dispatch is comments; returns `proxied: true` (`server.ts:151-168`) | Protocol-correct supported client/upstream forwarding, timeout/cancellation/error propagation and credentials handling |
-| M3-04 | ToolGuard is substring detection (`server.ts:75-84`) | One deterministic text/action evaluator with explicit policy versions and all outcome tests |
-| M3-05 | Generated/mock policy and approval UI | Persisted decisions, authorized exact-request reviews, expiry and replay prevention |
-| M3-06 | Hash chain reads latest then inserts separately (`server.ts:95-134`) | Concurrent append integrity, actual execution statuses, tenant scoping, tested verification/export |
-| M3-07 | Source describes complete prompt/data protection without a capture integration | Tested coverage matrix; unsupported apps/content clearly unavailable; no blanket interception claim |
-
-Before M3 planning: select the first real MCP client/upstream/transport pair, and specify local scanning plus paused-request content lifetime. The loopback test fixture does not itself establish customer-client support. These decisions do not block M0/M1.
-
-### M4 — Measured Spend and useful dashboard
-
-| ID | Gap and source evidence | Required result |
-| --- | --- | --- |
-| M4-01 | Spend/subscription functions return defaults (`api.ts:573-581`) | Validated imported billing/seat evidence, with source, period, currency and duplicate handling |
-| M4-02 | Detected users times catalog price is presented as savings | Measured spend, estimates, potential savings, and verified savings are separate; no inferred license purchase |
-| M4-03 | MCP failed reads replaced by generated calls (`useMCPData.ts:363-384`) | Honest loading/empty/error/disconnected states with no synthetic live evidence |
-| M4-04 | SCIM, SSO, sessions, team and policies partly hardcoded (`useMCPData.ts:482-552`) | Wire pilot capabilities to real data; mark deferred integrations unavailable |
-| M4-05 | Profile/settings/alerts/invites contain successful stubs | Persist accepted pilot actions with authorization, audit, error recovery and tests |
-| M4-06 | Code scanning accepts a directory with limited safeguards (`api/index.py:41-56`) | Authenticated configured-root scanning with path containment, size/exclusion/time limits; tour/reviewer either implemented or unavailable |
-
-### M5 — Pilot release and expansion gates
-
-| ID | Gap | Required result |
-| --- | --- | --- |
-| M5-01 | Monitoring privacy/consent and retention not operationalized | Consent/status controls, minimal collection, documented deletion/export/retention, redacted logs |
-| M5-02 | Unit/demo evidence does not establish installed agent operation | Clean Windows device verification with accepted install/upgrade/uninstall and outage scenarios |
-| M5-03 | Deployment configuration exists without current service proof | Configured Auth0/Supabase/hosting/HTTPS, migrations, backups, health checks and owner acceptance |
-| M5-04 | No current tracked GitHub Actions workflows | Reproducible checks locally and CI once publication is authorized; failures must block readiness |
-| M5-05 | No proven support/recovery process | Versioned package, rollback/recovery procedure, audit export, operator runbook and explicit known limits |
-| M5-06 | Cross-platform/universal capture/proprietary-model parity remains aspirational | Separate expansion specs after pilot acceptance; no claim of completion based on this milestone |
-
-## Architecture survey recommendations
-
-1. **Tenant-scoped ingestion module (Strong; first):** replace the empty ingestion surface with identity, validation, idempotency, persistence and authorized reads. Deleting the current stub removes ceremony; deleting the completed module would spread those invariants across its callers.
-2. **Policy delivery/enforcement module (Strong):** deepen the existing monitor seam around versioned policy and measured adapter outcomes. Network observation and supported request prevention are two real adapters, not equivalent evidence.
-3. **MCP execution/evidence module (Strong):** replace optimistic proxy semantics with actual forwarding and measured durable outcomes. Keep protocol and persistence complexity behind the execution interface.
-4. **Measured-spend module (Strong; after ingestion):** concentrate billing evidence, identity reconciliation, currency/period and provenance. Remove contradictory fallback totals rather than wrapping them.
-
-## Current next action
-
-Implement M1 from the approved design: versioned schema, organization membership, server-verified identity, scoped device enrollment, durable/idempotent ingestion and authorized reads. Use a local real Postgres test environment for development evidence; configured Auth0/Supabase and a consented Windows device remain separate acceptance gates. Preserve the explicit live-data lock until those authorization contracts exist. The product is not pilot-ready at this point.
+An LLM/provider key is not required for the implemented deterministic local engine. No cloud account, domain, external integration or signed release is declared complete from these local checks.

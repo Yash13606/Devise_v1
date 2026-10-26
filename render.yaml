@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: devise-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.api
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEVISE_AUTH_MODE
+        value: auth0
+      - key: DATABASE_URL
+        sync: false
+      - key: AUTH0_DOMAIN
+        sync: false
+      - key: AUTH0_AUDIENCE
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: DEVISE_PENDING_SECRET
+        sync: false

@@ -1,0 +1,20 @@
+# Optional development database. Generate .local/database.json first; see LOCAL_SETUP.
+name: devise-local
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: devise_owner
+      POSTGRES_DB: devise_local
+      POSTGRES_PASSWORD: ${DEVISE_LOCAL_DB_PASSWORD:?Use the generated private compose environment}
+    ports:
+      - "127.0.0.1:${DEVISE_DB_PORT:-55432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devise_owner -d devise_local"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+volumes:
+  postgres_data:

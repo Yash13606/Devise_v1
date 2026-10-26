@@ -4,8 +4,8 @@ from api.index import app
 client = TestClient(app)
 
 
-def test_health_is_available_without_claiming_ingestion_readiness():
-    assert client.get("/health").status_code == 200
+def test_health_fails_closed_without_database_and_identity_configuration():
+    assert client.get("/health").status_code == 503
 
 
 def test_events_cannot_be_acknowledged_without_durable_ingestion():

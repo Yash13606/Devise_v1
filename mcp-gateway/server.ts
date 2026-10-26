@@ -1,222 +1,130 @@
-import fastify from 'fastify';
-import rateLimit from '@fastify/rate-limit';
+/** Thin MCP transport: Python owns authorization, policy, storage and execution. */
+import fastify, { FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
-import jwt from 'jsonwebtoken';
-import jwksClient from 'jwks-rsa';
-import crypto from 'crypto';
-import dotenv from 'dotenv';
-import { createClient } from '@supabase/supabase-js';
+import rateLimit from '@fastify/rate-limit';
+import { randomUUID } from 'node:crypto';
 
-dotenv.config();
+type Fetcher = (url: string | URL, options?: RequestInit) => Promise<Response>;
+type Options = { apiUrl: string; origins?: string[]; publicHost?: string; fetcher?: Fetcher; logger?: boolean };
+type Execution = { execution_id: string; decision: string; status: string; policy_version: number; result?: Record<string, unknown> };
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const LOCAL = new Set(['127.0.0.1', 'localhost', '[::1]']);
+const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const app = fastify({ logger: true });
-
-// Configuration
-const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || 'devise-mcp.us.auth0.com';
-const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE || 'https://api.devise.io';
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
-
-// Supabase Configuration
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = SUPABASE_URL ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY) : null;
-
-// ---------------------------------------------------------------------------
-// Rate Limiting (Phase 4 Task)
-// ---------------------------------------------------------------------------
-app.register(rateLimit, {
-  max: 100, // 100 requests per window
-  timeWindow: '1 minute'
-});
-
-app.register(cors, { origin: '*' });
-
-// ---------------------------------------------------------------------------
-// Auth0 JWT Middleware (Phase 4 Task)
-// ---------------------------------------------------------------------------
-const client = jwksClient({
-  jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`,
-  cache: true,
-  rateLimit: true,
-});
-
-function getKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) {
-  client.getSigningKey(header.kid, function(err, key) {
-    if (err || !key) return callback(err || new Error("Key not found"));
-    const signingKey = key.getPublicKey();
-    callback(null, signingKey);
-  });
+function origin(value: string): string {
+  const url = new URL(value);
+  if (url.username || url.password || url.search || url.hash || url.pathname !== '/') throw new Error('API URL must be an origin without credentials, path or query');
+  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && LOCAL.has(url.hostname))) throw new Error('API URL requires HTTPS away from loopback');
+  return url.origin;
 }
 
-const verifyJwt = async (request: any, reply: any) => {
-  const authHeader = request.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    reply.status(401).send({ error: 'Missing or invalid Auth header' });
-    return;
-  }
-  const token = authHeader.split(' ')[1];
-  
-  return new Promise<void>((resolve, reject) => {
-    jwt.verify(token, getKey, { audience: AUTH0_AUDIENCE }, (err, decoded) => {
-      if (err) {
-        reply.status(401).send({ error: 'Token validation failed' });
-        reject(err);
-        return;
-      }
-      request.user = decoded; // Store Auth0 sub
-      resolve();
-    });
-  });
-};
-
-// ---------------------------------------------------------------------------
-// ToolGuard Threat Detection Stub (Phase 4 Task)
-// ---------------------------------------------------------------------------
-const toolGuardMiddleware = async (request: any, reply: any) => {
-  const payload = request.body;
-  if (!payload || !payload.method) return; // Only process JSON-RPC
-
-  // Stub detection logic (Pre-execution sync payload inspection)
-  const isPoisoned = JSON.stringify(payload).includes("rm -rf") || JSON.stringify(payload).includes("system(");
-  if (isPoisoned) {
-    reply.status(403).send({ error: 'ToolGuard Access Denied. Malicious payload detected.' });
-    throw new Error('Blocked by ToolGuard');
-  }
-};
-
-// ---------------------------------------------------------------------------
-// Blockchain-Based Hash Chain Ledger (Phase 4 Task)
-// ---------------------------------------------------------------------------
-async function appendToBlockchainLedger(eventData: any, user: any) {
-  const timestamp = new Date().toISOString();
-  const org_id = user?.org_id || 'org_unknown';
-  const actor_id = user?.sub || 'unknown';
-  
-  // 1. Fetch the last hash from the database for this organization
-  const { data: lastRecord, error: fetchError } = await supabase
-    .from('mcp_audit_ledger')
-    .select('hash')
-    .eq('org_id', org_id)
-    .order('timestamp', { ascending: false })
-    .limit(1)
-    .single();
-
-  // If no record exists, use Genesis hash
-  const prev_hash = lastRecord?.hash || '0000000000000000000000000000000000000000000000000000000000000000';
-  
-  const recordToHash = {
-    org_id,
-    actor_id,
-    event_type: 'tool_call',
-    request_payload: eventData,
-    timestamp,
-    prev_hash
-  };
-
-  // 2. Compute SHA-256 for the new record
-  const payloadStr = JSON.stringify(recordToHash);
-  const hash = crypto.createHash('sha256').update(payloadStr).digest('hex');
-  
-  // 3. Insert into Supabase mapping to our SQL schema
-  const { data: inserted, error: insertError } = await supabase
-    .from('mcp_audit_ledger')
-    .insert({
-      org_id,
-      actor_id,
-      event_type: 'tool_call',
-      request_payload: eventData,
-      status: 'success',
-      timestamp,
-      prev_hash,
-      hash
-    })
-    .select('id, hash')
-    .single();
-
-  if (insertError) {
-    app.log.error({ msg: "Failed to insert to ledger", error: insertError });
-    throw new Error('Ledger insertion failed');
-  }
-
-  app.log.info({
-    msg: "Appended to MCP Hash-Chain Ledger",
-    record_id: inserted?.id,
-    hash: hash
-  });
+function identity(request: FastifyRequest) {
+  const auth = request.headers.authorization;
+  const org = request.headers['x-organization-id'];
+  if (!auth?.startsWith('Bearer ') || auth.length > 8192 || typeof org !== 'string' || !UUID.test(org)) return null;
+  return { Authorization: auth, 'X-Organization-ID': org, 'Content-Type': 'application/json' };
 }
 
-// ---------------------------------------------------------------------------
-// JSON-RPC Proxy Route
-// ---------------------------------------------------------------------------
-app.post('/api/mcp', { 
-  preHandler: [verifyJwt, toolGuardMiddleware] 
-}, async (request, reply) => {
+async function readJson(response: Response): Promise<unknown> {
+  if (!response.body) throw new Error('Empty trusted API response');
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
   try {
-    const user = (request as any).user;
-    
-    // 1. Process standard JSON-RPC from client
-    // 2. Dispatch to underlying MCP connection (SSE or websocket usually)
-    // 3. Return result
-    
-    // Append to immutable ledger
-    await appendToBlockchainLedger(request.body, user);
-    
-    return {
-      jsonrpc: "2.0",
-      id: (request.body as any)?.id || null,
-      result: { status: "success", proxied: true }
-    };
-  } catch (err: any) {
-    reply.status(500).send({ error: err.message });
-  }
-});
-
-// Start Server
-app.post('/api/test-mcp', { 
-  preHandler: [toolGuardMiddleware] 
-}, async (request, reply) => {
-  try {
-    // Mock user for local testing purposes
-    const user = { sub: "test_agent_123", org_id: "org_test_789" };
-    
-    await appendToBlockchainLedger(request.body, user);
-    
-    return {
-      jsonrpc: "2.0",
-      id: (request.body as any)?.id || null,
-      result: { status: "success", proxied: true, message: "Test Ledger insert passed" }
-    };
-  } catch (err: any) {
-    if (err.message === 'Blocked by ToolGuard') return; // Handled by preHandler
-    reply.status(500).send({ error: err.message });
-  }
-});
-
-// ---------------------------------------------------------------------------
-// Dashboard Read API — serves ledger data to the frontend
-// ---------------------------------------------------------------------------
-app.get('/api/mcp/ledger', async (request, reply) => {
-  try {
-    const { data, error } = await supabase
-      .from('mcp_audit_ledger')
-      .select('*')
-      .order('id', { ascending: false })
-      .limit(200);
-
-    if (error) {
-      reply.status(500).send({ error: error.message });
-      return;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.length;
+      if (size > 512 * 1024) throw new Error('Trusted API response too large');
+      chunks.push(value);
     }
-    return data || [];
-  } catch (err: any) {
-    reply.status(500).send({ error: err.message });
-  }
-});
+  } finally { await reader.cancel(); }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
+}
 
-app.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
-  if (err) {
-    app.log.error(err);
-    process.exit(1);
-  }
-  app.log.info(`Devise MCP Gateway listening on ${address}`);
-});
+const execution = (value: unknown): value is Execution => object(value) && typeof value.execution_id === 'string'
+  && typeof value.status === 'string' && typeof value.decision === 'string' && typeof value.policy_version === 'number';
+
+export function buildGateway(options: Options) {
+  const api = origin(options.apiUrl);
+  const fetcher: Fetcher = options.fetcher ?? fetch;
+  const origins = options.origins ?? ['http://127.0.0.1:8081', 'http://localhost:8081'];
+  for (const item of origins) if (origin(item) !== item) throw new Error('CORS origins must be exact');
+  const hosts = new Set([...LOCAL, ...(options.publicHost ? [options.publicHost] : [])]);
+  const app = fastify({ bodyLimit: 512 * 1024, logger: options.logger ? {
+    level: 'info', redact: ['req.headers.authorization', 'req.headers.cookie', 'res.headers.set-cookie'],
+  } : false });
+  app.register(cors, { origin: origins, methods: ['POST', 'GET'], allowedHeaders: ['Authorization', 'Content-Type', 'X-Organization-ID', 'X-Request-ID', 'MCP-Protocol-Version'] });
+  app.register(rateLimit, { max: 100, timeWindow: '1 minute' });
+  app.addHook('onRequest', async (request, reply) => {
+    let host: string;
+    try { host = new URL('http://' + request.headers.host).hostname; }
+    catch { return reply.code(403).send({ detail: 'Invalid gateway host' }); }
+    if (!hosts.has(host) || (request.headers.origin && !origins.includes(request.headers.origin))) return reply.code(403).send({ detail: 'Gateway host/origin is not allowed' });
+  });
+  app.addHook('onSend', async (_request, reply) => { reply.header('Cache-Control', 'no-store'); });
+
+  app.get('/health', async (_request, reply) => {
+    try {
+      const response = await fetcher(api + '/health', { signal: AbortSignal.timeout(4000), redirect: 'manual' });
+      if (!response.ok) return reply.code(503).send({ status: 'unavailable', api_status: response.status });
+      return { status: 'ok', api: 'reachable', capability: 'stateless-json-http', upstream_verified: false };
+    } catch { return reply.code(503).send({ status: 'unavailable' }); }
+  });
+  app.get('/mcp', async (_request, reply) => reply.code(405).header('Allow', 'POST').send({ detail: 'Server-initiated SSE is unavailable' }));
+
+  app.post('/mcp', async (request, reply) => {
+    const auth = identity(request);
+    if (!auth) return reply.code(401).send({ detail: 'Human bearer credential and organization UUID required' });
+    const body = request.body;
+    if (!object(body) || body.jsonrpc !== '2.0' || typeof body.method !== 'string') return reply.code(400).send({ detail: 'A single JSON-RPC 2.0 object is required' });
+    const id = request.headers['x-request-id'];
+    if (body.method === 'tools/call' && (typeof id !== 'string' || !UUID.test(id))) return reply.code(400).send({ detail: 'tools/call requires a stable UUID X-Request-ID; reuse only for identical retries' });
+    const accept = request.headers.accept ?? '';
+    if (!accept.includes('application/json') || !accept.includes('text/event-stream')) return reply.code(406).send({ detail: 'Accept application/json and text/event-stream is required' });
+    try {
+      const response = await fetcher(api + '/api/mcp/execute', { method: 'POST', headers: auth,
+        body: JSON.stringify({ request_id: typeof id === 'string' && UUID.test(id) ? id : randomUUID(), rpc: body }),
+        redirect: 'manual', signal: AbortSignal.timeout(15000) });
+      if (!response.ok) return reply.code(response.status >= 400 && response.status < 500 ? response.status : 502).send({
+        jsonrpc: '2.0', id: body.id ?? null, error: { code: -32001, message: 'Trusted API refused the request', data: { status: response.status } },
+      });
+      const value = await readJson(response);
+      if (!execution(value)) throw new Error('Invalid execution response');
+      if (body.method === 'notifications/initialized' && body.id === undefined && value.status === 'succeeded') return reply.code(202).send();
+      if (value.status === 'succeeded' && object(value.result) && !('notification_accepted' in value.result)) return value.result;
+      return { jsonrpc: '2.0', id: body.id ?? null, result: { isError: true,
+        content: [{ type: 'text', text: `Devise decision: ${value.decision}; status: ${value.status}. This does not confirm upstream execution. Pending or blocked requests did not execute. Review or explicitly continue warnings in Devise.` }],
+        _meta: { devise: value } } };
+    } catch { return reply.code(502).send({ jsonrpc: '2.0', id: body.id ?? null,
+      error: { code: -32002, message: 'Trusted API result unavailable. Execution may be uncertain; retry only with the identical X-Request-ID.' } }); }
+  });
+
+  app.post('/mcp/continue', async (request, reply) => {
+    const auth = identity(request);
+    if (!auth) return reply.code(401).send({ detail: 'Human bearer credential and organization UUID required' });
+    const body = request.body;
+    if (!object(body) || Object.keys(body).length !== 1 || typeof body.continuation_token !== 'string') return reply.code(400).send({ detail: 'An explicit warning continuation token is required' });
+    try {
+      const response = await fetcher(api + '/api/mcp/continue', { method: 'POST', headers: auth,
+        body: JSON.stringify(body), redirect: 'manual', signal: AbortSignal.timeout(15000) });
+      if (!response.ok) return reply.code(response.status >= 400 && response.status < 500 ? response.status : 502).send({ detail: 'Warning continuation refused' });
+      const value = await readJson(response);
+      if (!execution(value)) throw new Error('Invalid execution response');
+      return value;
+    } catch { return reply.code(502).send({ detail: 'Continuation result unavailable; do not start a new request automatically' }); }
+  });
+  return app;
+}
+
+if (require.main === module) {
+  const host = process.env.DEVISE_GATEWAY_BIND || '127.0.0.1';
+  const port = Number(process.env.PORT || process.env.FASTIFY_PORT || 3001);
+  if (host !== '127.0.0.1' && !(process.env.APP_ENV === 'production' && process.env.DEVISE_GATEWAY_PUBLIC_HOST)) throw new Error('Non-loopback binding requires production and an explicit public host');
+  if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid gateway port');
+  const app = buildGateway({ apiUrl: process.env.DEVISE_API_URL || 'http://127.0.0.1:8000', publicHost: process.env.DEVISE_GATEWAY_PUBLIC_HOST,
+    origins: process.env.CORS_ORIGINS?.split(',').map(item => item.trim()).filter(Boolean), logger: true });
+  app.listen({ port, host }).catch(error => { app.log.error(error); process.exitCode = 1; });
+  process.once('SIGINT', () => { void app.close(); });
+  process.once('SIGTERM', () => { void app.close(); });
+}

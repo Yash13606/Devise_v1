@@ -16,6 +16,107 @@ BACKOFF_INTERVALS = [30, 60, 120, 300]
 MAX_RETRIES = 4
 BATCH_SIZE = 100
 
+
+class TransportFailure(RuntimeError):
+    def __init__(self, status=None):
+        self.status = status
+        super().__init__(f"Device API failure ({status or 'network unavailable'})")
+
+
+class CredentialRevoked(TransportFailure):
+    """Device authentication rejected; observation must stop."""
+
+
+def validate_api_url(value):
+    from urllib.parse import urlsplit
+    import ipaddress
+    parsed = urlsplit(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in {"", "/"}:
+        raise ValueError("API URL must be an http(s) origin without credentials, path, query or fragment")
+    try:
+        loopback = ipaddress.ip_address(parsed.hostname).is_loopback
+    except ValueError:
+        loopback = parsed.hostname.lower() == "localhost"
+    if parsed.scheme == "http" and not loopback:
+        raise ValueError("Remote API URL requires HTTPS; HTTP is allowed only on loopback")
+    # Force port parsing so invalid ports fail before storing a credential.
+    parsed.port
+    return value.rstrip("/")
+
+
+class DeviceTransport:
+    """Opaque device token only. Never redirects, uses proxies, or logs bodies."""
+    def __init__(self, api_url, token=None, transport=None):
+        self.api_url = validate_api_url(api_url)
+        headers = {"Authorization": f"Bearer {token}"} if token else {}
+        self.client = httpx.Client(base_url=self.api_url, headers=headers,
+                                   timeout=httpx.Timeout(10, connect=3), follow_redirects=False,
+                                   trust_env=False, transport=transport)
+
+    def close(self):
+        self.client.close()
+
+    def request(self, method, path, payload=None):
+        if not path.startswith("/api/") or "://" in path or ".." in path:
+            raise ValueError("Only scoped API paths are supported")
+        try:
+            with self.client.stream(method, path, json=payload) as response:
+                if response.status_code in {401, 403}:
+                    raise CredentialRevoked(response.status_code)
+                if response.status_code < 200 or response.status_code >= 300:
+                    raise TransportFailure(response.status_code)
+                content = bytearray()
+                for chunk in response.iter_bytes():
+                    content.extend(chunk)
+                    if len(content) > 65536:
+                        raise TransportFailure("oversized_response")
+                import json
+                result = json.loads(content)
+                if not isinstance(result, dict):
+                    raise TransportFailure("invalid_response")
+                return result
+        except (httpx.HTTPError, ValueError) as error:
+            raise TransportFailure() from error
+
+
+class QueueDelivery:
+    """Persist once, send existing records, remove only a fully acknowledged batch."""
+    def __init__(self, queue, transport):
+        import threading
+        self.queue = queue
+        self.transport = transport
+        self.batch_size = 100
+        self.retryable_failure = False
+        self._lock = threading.Lock()
+
+    def flush(self):
+        with self._lock:
+            self.retryable_failure = False
+            rows = self.queue.pending(self.batch_size)
+            if not rows:
+                return 0
+            ids = [row["event_id"] for row in rows]
+            try:
+                result = self.transport.request("POST", "/api/events/batch", {"schema_version": 1, "events": [row["event"] for row in rows]})
+                accepted, duplicates = result.get("accepted"), result.get("duplicates")
+                if type(accepted) is not int or type(duplicates) is not int or accepted < 0 or duplicates < 0 or accepted + duplicates != len(rows):
+                    self.retryable_failure = True
+                    self.queue.record_error("invalid_batch_acknowledgement")
+                    return 0
+                self.queue.acknowledge(ids)
+                return len(rows)
+            except CredentialRevoked:
+                self.queue.record_error("credential_revoked")
+                raise
+            except TransportFailure as error:
+                reason = f"http_{error.status}" if error.status else "network_unavailable"
+                if error.status in {400, 404, 405, 409, 410, 413, 415, 422}:
+                    self.queue.quarantine(ids, reason)
+                else:
+                    self.retryable_failure = True
+                    self.queue.record_error(reason)
+                return 0
+
 class SupabaseReporter:
     """Reports events to Supabase REST API."""
 

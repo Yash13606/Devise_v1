@@ -46,7 +46,8 @@ import { StartupsPage } from "./pages/landing/solutions/StartupsPage";
 import { HealthcarePage } from "./pages/landing/solutions/HealthcarePage";
 import { ProfessionalServicesPage } from "./pages/landing/solutions/ProfessionalServicesPage";
 import { PreviewNotice, ReadOnlyPreview, SetupRequired } from "./components/RuntimeStatus";
-import { liveDataAvailable, runtimeConfig } from "./lib/runtimeConfig";
+import { runtimeConfig } from "./lib/runtimeConfig";
+import { PilotWorkspace } from "./pages/PilotWorkspace";
 
 type Tab = "overview" | "live-feed" | "analytics" | "devices" | "alerts" | "subscriptions" | "settings" | "team" | "firewall" | "data-risk";
 
@@ -106,7 +107,8 @@ function Dashboard() {
 
 const AppContent = () => {
   const { user, loading } = useAuth();
-  const applicationUnavailable = !runtimeConfig.isDemo && (!runtimeConfig.isConfigured || !liveDataAvailable);
+  const applicationUnavailable = !runtimeConfig.isDemo && !runtimeConfig.isConfigured;
+  const pilotPage = applicationUnavailable ? <SetupRequired /> : <PilotWorkspace />;
   const protectedPage = (page: React.ReactNode) => applicationUnavailable ? <SetupRequired />
     : loading ? <p role="status" className="p-8">Loading your session…</p>
     : user ? page : <Navigate to="/login" replace />;
@@ -114,7 +116,7 @@ const AppContent = () => {
   return (
     <Routes>
       {/* Landing Page Routes */}
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={runtimeConfig.isLocal ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
       <Route path="/product/oversight" element={<OversightPage />} />
       <Route path="/product/pulse" element={<PulsePage />} />
       <Route path="/product/spend" element={<SpendPage />} />
@@ -132,27 +134,27 @@ const AppContent = () => {
       {/* Auth Routes */}
       <Route
         path="/login"
-        element={applicationUnavailable ? <SetupRequired /> : user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+        element={!runtimeConfig.isDemo ? pilotPage : user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
       />
       <Route
         path="/signup"
-        element={applicationUnavailable ? <SetupRequired /> : user ? <Navigate to="/dashboard" replace /> : <SignupPage />}
+        element={!runtimeConfig.isDemo ? pilotPage : user ? <Navigate to="/dashboard" replace /> : <SignupPage />}
       />
 
       {/* Dashboard Routes (Protected) */}
       <Route
         path="/dashboard/*"
-        element={protectedPage(<Dashboard />)}
+        element={runtimeConfig.isDemo ? protectedPage(<Dashboard />) : pilotPage}
       />
       <Route
         path="/understand"
-        element={runtimeConfig.isDemo ? <SetupRequired feature="Code scanning is unavailable in this preview" /> : protectedPage(<UnderstandDashboard />)}
+        element={<SetupRequired feature="Code scanning is unavailable in this preview" />}
       />
 
       {/* MCP Gateway Dashboard Routes (Protected) */}
       <Route
         path="/mcp/*"
-        element={protectedPage(<MCPRouter />)}
+        element={runtimeConfig.isDemo ? protectedPage(<MCPRouter />) : pilotPage}
       />
       <Route path="/trust-security" element={<TrustSecurityPage />} />
 

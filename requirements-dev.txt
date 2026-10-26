@@ -1,0 +1,3 @@
+-r requirements.txt
+-r devise-agent/devise-eye/requirements.txt
+pytest>=8,<10

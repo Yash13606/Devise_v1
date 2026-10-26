@@ -1,0 +1,13 @@
+.git
+.agents
+.claude
+.codex
+.local
+.venv
+**/node_modules
+**/__pycache__
+**/.env*
+graphify-out
+frontend
+devise-agent
+mcp-gateway

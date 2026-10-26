@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { runtimeConfig, liveDataMessage } from "@/lib/runtimeConfig";
 import type { ReactNode } from "react";
 
@@ -33,6 +33,8 @@ export function ReadOnlyPreview({ children }: { children: ReactNode }) {
 }
 
 export function PreviewNotice() {
+  const { pathname } = useLocation();
+  if (!runtimeConfig.isDemo && (runtimeConfig.isLocal || /^\/(dashboard|mcp|login|signup)(\/|$)/.test(pathname))) return null;
   return <aside role="status" className="fixed bottom-4 right-4 z-[100] max-w-sm rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-lg">
     {runtimeConfig.isDemo
       ? "Demo preview — read-only sample screens. No live monitoring or saved changes."

@@ -1,0 +1,2 @@
+-r devise-agent/devise-eye/requirements.txt
+pyinstaller==6.22.3

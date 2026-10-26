@@ -1,0 +1,58 @@
+name: Local pilot checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  api-and-web:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: devise_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable-ci-owner
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d devise_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_ADMIN_TEST_URL: postgresql://postgres:disposable-ci-owner@127.0.0.1:5432/devise_test
+      DATABASE_TEST_URL: postgresql://devise_app:disposable-ci-runtime@127.0.0.1:5432/devise_test
+      VITE_APP_MODE: live
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: python -m pip install --require-hashes -r requirements-dev.lock
+      - run: python scripts/ci_database.py
+      - run: python -m pytest api/tests scripts/tests -q
+      - run: npm ci --prefix frontend
+      - run: npm run typecheck --prefix frontend
+      - run: npm run lint --prefix frontend
+      - run: npm test --prefix frontend -- --maxWorkers=1
+      - run: npm run build --prefix frontend
+      - run: npm ci --prefix mcp-gateway
+      - run: npm test --prefix mcp-gateway
+      - run: npm run test:setup
+  windows-agent:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --require-hashes -r requirements-dev.lock
+      - run: python -m pytest devise-agent/devise-eye/tests -q

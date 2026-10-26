@@ -89,9 +89,10 @@ skills-lock.json
 tools/
 Docs/
 .cursor/rules/
-.github/workflows/
 
 # Local assistant settings and installed tooling
 /.codex/
 /.mcp.json
 /AGENTS.md
+/.local/
+/.superpowers/
