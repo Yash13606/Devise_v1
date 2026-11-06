@@ -1,5 +1,9 @@
 # Supabase/Auth0 + Vercel/Render handoff
 
+**Current scope is landing page + dashboard demo only.** Follow
+[DEMO_DEPLOYMENT.md](DEMO_DEPLOYMENT.md). No backend credentials are required.
+The production/backend instructions below are deferred.
+
 For the current **single Vercel project with multiple services** configuration,
 start with [VERCEL_SERVICES.md](VERCEL_SERVICES.md). Import the repository root
 (`./`) using the root `vercel.json`. The frontend-only Vercel/Render instructions

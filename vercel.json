@@ -1,34 +1,16 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
-    "devise-api": {
-      "root": ".",
-      "framework": "fastapi",
-      "entrypoint": "api.index:app"
-    },
     "frontend": {
       "root": "frontend",
       "framework": "vite",
       "installCommand": "npm ci",
-      "buildCommand": "npm run build",
+      "buildCommand": "npm run build:demo",
       "outputDirectory": "dist",
       "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-    },
-    "mcp-gateway": {
-      "root": "mcp-gateway",
-      "framework": "fastify",
-      "entrypoint": "app.ts",
-      "installCommand": "npm ci",
-      "buildCommand": "npm run build",
-      "bindings": [
-        { "type": "service", "service": "devise-api", "format": "url", "env": "DEVISE_API_URL" }
-      ]
     }
   },
   "rewrites": [
-    { "source": "/api/:path*", "destination": { "service": "devise-api" } },
-    { "source": "/health", "destination": { "service": "devise-api" } },
-    { "source": "/gateway/:path*", "destination": { "service": "mcp-gateway" } },
     { "source": "/(.*)", "destination": { "service": "frontend" } }
   ]
 }

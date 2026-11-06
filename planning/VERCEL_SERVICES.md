@@ -1,5 +1,10 @@
 # Deploy Devise with Vercel Services
 
+**Deferred:** the current deployment is frontend-only demo mode. Follow
+[DEMO_DEPLOYMENT.md](DEMO_DEPLOYMENT.md). The multi-service details below are
+retained for future live backend deployment and do not describe the current
+root `vercel.json`.
+
 Prepared for review. No Vercel deployment has been created by this change.
 This replaces the frontend-only Vercel/Render arrangement for a project imported
 from the repository root. Render remains an optional separate hosting route.
