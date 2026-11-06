@@ -31,6 +31,8 @@ The upload completed successfully. HTTP checks confirmed that `/`, `/dashboard`
 and `/mcp` return the built demo entrypoint, and that the deployed JavaScript and
 CSS match the local production output. Browser checks confirmed landing-page
 navigation to the dashboard without login and refreshing the dashboard URL.
+Direct browser checks of `/dashboard` and `/mcp` confirmed demo notices, zero
+JavaScript page errors, and zero requests to the live backend or Auth0.
 
 The earlier Vercel configuration is optional and is not required for this
 Cloudflare deployment. An empty Vercel project named `devise` was created during
