@@ -1,5 +1,8 @@
 # Supabase/Auth0 + Vercel/Render handoff
 
+**Current demo is deployed on Cloudflare:** https://devise.pages.dev/.
+Follow [CLOUDFLARE_DEMO.md](CLOUDFLARE_DEMO.md) for deployment updates.
+
 **Current scope is landing page + dashboard demo only.** Follow
 [DEMO_DEPLOYMENT.md](DEMO_DEPLOYMENT.md). No backend credentials are required.
 The production/backend instructions below are deferred.

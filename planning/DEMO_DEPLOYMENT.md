@@ -1,5 +1,9 @@
 # Landing page and dashboard demo on Vercel
 
+**Current hosting is Cloudflare Pages:** https://devise.pages.dev/.
+See [CLOUDFLARE_DEMO.md](CLOUDFLARE_DEMO.md) for updates. The Vercel setup below
+is retained as an optional alternative.
+
 Current deployment scope: the static landing page and read-only dashboard demo.
 No API keys, Auth0 tenant, PostgreSQL database, desktop agent, or gateway are
 required. The root `vercel.json` deploys only the `frontend` service. The previous
