@@ -1,5 +1,10 @@
 # Supabase/Auth0 + Vercel/Render handoff
 
+For the current **single Vercel project with multiple services** configuration,
+start with [VERCEL_SERVICES.md](VERCEL_SERVICES.md). Import the repository root
+(`./`) using the root `vercel.json`. The frontend-only Vercel/Render instructions
+below describe the alternative split-host deployment.
+
 These are prepared configurations and operator instructions, not a deployment. No external project, subscription, domain or key has been created. Real Auth0/Supabase compatibility, deployed HTTPS/CORS, backups/restore, signing and owner acceptance remain unverified.
 
 ## Database and identity

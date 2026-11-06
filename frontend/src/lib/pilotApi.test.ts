@@ -4,6 +4,17 @@ import { createPilotApi, PilotApiError } from "./pilotApi";
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe("scoped pilot API", () => {
+  it("keeps the API prefix and credentials when using same-origin routing", async () => {
+    const fetcher = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => new Response('{"events":3}'));
+    vi.stubGlobal("fetch", fetcher);
+    const api = createPilotApi("", async () => "human-token", () => "org-a");
+    await api.request("/api/stats");
+    expect(fetcher).toHaveBeenCalledWith("/api/stats", expect.objectContaining({ credentials: "omit" }));
+    const init = fetcher.mock.calls[0][1] as RequestInit;
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer human-token");
+    expect(new Headers(init.headers).get("X-Organization-ID")).toBe("org-a");
+  });
+
   it("uses the current access token and organization on each request", async () => {
     let org = "org-a";
     let token = "first";

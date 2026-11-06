@@ -5,7 +5,8 @@ import rateLimit from '@fastify/rate-limit';
 import { randomUUID } from 'node:crypto';
 
 type Fetcher = (url: string | URL, options?: RequestInit) => Promise<Response>;
-type Options = { apiUrl: string; origins?: string[]; publicHost?: string; fetcher?: Fetcher; logger?: boolean };
+type Options = { apiUrl: string; apiBinding?: () => string | undefined; routePrefix?: string;
+  origins?: string[]; publicHost?: string; publicHosts?: string[]; fetcher?: Fetcher; logger?: boolean };
 type Execution = { execution_id: string; decision: string; status: string; policy_version: number; result?: Record<string, unknown> };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LOCAL = new Set(['127.0.0.1', 'localhost', '[::1]']);
@@ -47,10 +48,25 @@ const execution = (value: unknown): value is Execution => object(value) && typeo
 
 export function buildGateway(options: Options) {
   const api = origin(options.apiUrl);
+  // Resolve bindings only when a function handles a request. The generated base
+  // can include a path and use private HTTP; preserve that path when joining.
+  const apiTarget = (path: string) => {
+    if (!options.apiBinding) return new URL(path, api + '/');
+    const value = options.apiBinding();
+    if (!value) throw new Error('DEVISE_API_URL service binding is unavailable');
+    const base = new URL(value);
+    if (!['http:', 'https:'].includes(base.protocol) || base.username || base.password || base.search || base.hash) {
+      throw new Error('Invalid trusted API service binding');
+    }
+    base.pathname = base.pathname.replace(/\/$/, '') + '/';
+    return new URL(path, base);
+  };
+  const prefix = options.routePrefix ?? '';
+  if (prefix && !/^\/[a-z][a-z0-9/-]*[a-z0-9]$/.test(prefix)) throw new Error('Invalid gateway route prefix');
   const fetcher: Fetcher = options.fetcher ?? fetch;
   const origins = options.origins ?? ['http://127.0.0.1:8081', 'http://localhost:8081'];
   for (const item of origins) if (origin(item) !== item) throw new Error('CORS origins must be exact');
-  const hosts = new Set([...LOCAL, ...(options.publicHost ? [options.publicHost] : [])]);
+  const hosts = new Set([...LOCAL, ...(options.publicHost ? [options.publicHost] : []), ...(options.publicHosts ?? [])]);
   const app = fastify({ bodyLimit: 512 * 1024, logger: options.logger ? {
     level: 'info', redact: ['req.headers.authorization', 'req.headers.cookie', 'res.headers.set-cookie'],
   } : false });
@@ -64,16 +80,16 @@ export function buildGateway(options: Options) {
   });
   app.addHook('onSend', async (_request, reply) => { reply.header('Cache-Control', 'no-store'); });
 
-  app.get('/health', async (_request, reply) => {
+  app.get(prefix + '/health', async (_request, reply) => {
     try {
-      const response = await fetcher(api + '/health', { signal: AbortSignal.timeout(4000), redirect: 'manual' });
+      const response = await fetcher(apiTarget('health'), { signal: AbortSignal.timeout(4000), redirect: 'manual' });
       if (!response.ok) return reply.code(503).send({ status: 'unavailable', api_status: response.status });
       return { status: 'ok', api: 'reachable', capability: 'stateless-json-http', upstream_verified: false };
     } catch { return reply.code(503).send({ status: 'unavailable' }); }
   });
-  app.get('/mcp', async (_request, reply) => reply.code(405).header('Allow', 'POST').send({ detail: 'Server-initiated SSE is unavailable' }));
+  app.get(prefix + '/mcp', async (_request, reply) => reply.code(405).header('Allow', 'POST').send({ detail: 'Server-initiated SSE is unavailable' }));
 
-  app.post('/mcp', async (request, reply) => {
+  app.post(prefix + '/mcp', async (request, reply) => {
     const auth = identity(request);
     if (!auth) return reply.code(401).send({ detail: 'Human bearer credential and organization UUID required' });
     const body = request.body;
@@ -83,7 +99,7 @@ export function buildGateway(options: Options) {
     const accept = request.headers.accept ?? '';
     if (!accept.includes('application/json') || !accept.includes('text/event-stream')) return reply.code(406).send({ detail: 'Accept application/json and text/event-stream is required' });
     try {
-      const response = await fetcher(api + '/api/mcp/execute', { method: 'POST', headers: auth,
+      const response = await fetcher(apiTarget('api/mcp/execute'), { method: 'POST', headers: auth,
         body: JSON.stringify({ request_id: typeof id === 'string' && UUID.test(id) ? id : randomUUID(), rpc: body }),
         redirect: 'manual', signal: AbortSignal.timeout(15000) });
       if (!response.ok) return reply.code(response.status >= 400 && response.status < 500 ? response.status : 502).send({
@@ -100,13 +116,13 @@ export function buildGateway(options: Options) {
       error: { code: -32002, message: 'Trusted API result unavailable. Execution may be uncertain; retry only with the identical X-Request-ID.' } }); }
   });
 
-  app.post('/mcp/continue', async (request, reply) => {
+  app.post(prefix + '/mcp/continue', async (request, reply) => {
     const auth = identity(request);
     if (!auth) return reply.code(401).send({ detail: 'Human bearer credential and organization UUID required' });
     const body = request.body;
     if (!object(body) || Object.keys(body).length !== 1 || typeof body.continuation_token !== 'string') return reply.code(400).send({ detail: 'An explicit warning continuation token is required' });
     try {
-      const response = await fetcher(api + '/api/mcp/continue', { method: 'POST', headers: auth,
+      const response = await fetcher(apiTarget('api/mcp/continue'), { method: 'POST', headers: auth,
         body: JSON.stringify(body), redirect: 'manual', signal: AbortSignal.timeout(15000) });
       if (!response.ok) return reply.code(response.status >= 400 && response.status < 500 ? response.status : 502).send({ detail: 'Warning continuation refused' });
       const value = await readJson(response);

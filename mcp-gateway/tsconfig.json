@@ -9,5 +9,5 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["server.ts", "server.test.ts"]
+  "include": ["app.ts", "server.ts", "server.test.ts"]
 }

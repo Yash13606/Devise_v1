@@ -12,6 +12,16 @@ const liveEnvironment = {
 };
 
 describe("runtime configuration", () => {
+  it("supports explicit same-origin live API routing without enabling local login", () => {
+    const config = readRuntimeConfig({ ...liveEnvironment, VITE_API_URL: "/" }, "devise.vercel.app");
+    expect(config.isConfigured).toBe(true);
+    expect(config.apiUrl).toBe("");
+    expect(config.isLocal).toBe(false);
+    expect(readRuntimeConfig({ ...liveEnvironment, VITE_API_URL: "" }).issues).toContain("VITE_API_URL");
+    expect(readRuntimeConfig({ ...liveEnvironment, VITE_API_URL: "//evil.example" }).issues).toContain("VITE_API_URL");
+    expect(readRuntimeConfig({ DEV: true, VITE_APP_MODE: "local", VITE_API_URL: "/" }, "localhost").isConfigured).toBe(false);
+  });
+
   it("defaults to live and reports missing keys without granting demo access", () => {
     const config = readRuntimeConfig({});
     expect(config.mode).toBe("live");

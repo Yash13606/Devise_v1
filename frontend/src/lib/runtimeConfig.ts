@@ -6,7 +6,10 @@ export function readRuntimeConfig(env: Environment, browserHostname = globalThis
   const mode: "live" | "local" | "demo" = selectedMode === "demo" ? "demo" : selectedMode === "local" ? "local" : "live";
   const issues: string[] = [];
   if (!["live", "local", "demo"].includes(selectedMode)) issues.push("VITE_APP_MODE (use live, local or demo)");
-  const apiUrl = value("VITE_API_URL").replace(/\/$/, "");
+  // An explicit '/' selects the public API on this deployment's origin.
+  // Static Vite code cannot read Vercel's server-side service bindings.
+  const sameOriginApi = value("VITE_API_URL") === "/";
+  const apiUrl = sameOriginApi ? "" : value("VITE_API_URL").replace(/\/$/, "");
 
   const supabaseUrl = value("VITE_SUPABASE_URL");
   const supabaseKey = value("VITE_SUPABASE_ANON_KEY");
@@ -17,10 +20,10 @@ export function readRuntimeConfig(env: Environment, browserHostname = globalThis
 
   const loopback = (hostname: string) => ["localhost", "127.0.0.1", "[::1]", "::1"].includes(hostname);
   if (mode !== "demo") {
-    let validUrl = false;
+    let validUrl = sameOriginApi && mode === "live";
     try {
-      const url = new URL(apiUrl);
-      validUrl = configured(apiUrl) && !url.username && !url.password && !url.search && !url.hash && url.pathname === "/" &&
+      const url = sameOriginApi ? null : new URL(apiUrl);
+      if (url) validUrl = configured(apiUrl) && !url.username && !url.password && !url.search && !url.hash && url.pathname === "/" &&
         (mode === "local" ? loopback(url.hostname) && ["http:", "https:"].includes(url.protocol) :
           url.protocol === "https:" || (url.protocol === "http:" && loopback(url.hostname)));
     } catch { /* Report the key below, never its value. */ }

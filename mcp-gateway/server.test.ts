@@ -7,6 +7,39 @@ const rpc = { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'echo
 const headers = { authorization: 'Bearer test-human-token', 'x-organization-id': randomUUID(),
   'x-request-id': randomUUID(), accept: 'application/json, text/event-stream' };
 
+test('Vercel routes preserve the gateway prefix and resolve the binding at request time', async () => {
+  let binding: string | undefined;
+  const urls: string[] = [];
+  const app = buildGateway({ apiUrl: 'http://127.0.0.1:8000', routePrefix: '/gateway',
+    apiBinding: () => binding, publicHosts: ['devise.example', 'preview.vercel.app'],
+    origins: ['https://devise.example'], fetcher: async url => {
+      urls.push(String(url));
+      return new Response(JSON.stringify({ execution_id: randomUUID(), decision: 'allow', status: 'succeeded',
+        policy_version: 1, result: { jsonrpc: '2.0', id: 1, result: {} } }));
+    } });
+  const deployedHeaders = { ...headers, host: 'devise.example', origin: 'https://devise.example' };
+  try {
+    // Construction succeeded without a binding, as it must during a build.
+    assert.equal((await app.inject({ method: 'POST', url: '/gateway/mcp', headers: deployedHeaders, payload: rpc })).statusCode, 502);
+    assert.equal(urls.length, 0);
+    binding = 'http://api.internal/service/devise-api';
+    assert.equal((await app.inject({ method: 'POST', url: '/gateway/mcp', headers: deployedHeaders, payload: rpc })).statusCode, 200);
+    assert.equal((await app.inject({ method: 'POST', url: '/gateway/mcp/continue', headers: deployedHeaders,
+      payload: { continuation_token: 'ct_test' } })).statusCode, 200);
+    assert.equal((await app.inject({ url: '/gateway/health', headers: { host: 'preview.vercel.app' } })).statusCode, 200);
+    assert.deepEqual(urls, ['http://api.internal/service/devise-api/api/mcp/execute',
+      'http://api.internal/service/devise-api/api/mcp/continue', 'http://api.internal/service/devise-api/health']);
+    assert.equal((await app.inject({ url: '/mcp' })).statusCode, 404);
+    assert.equal((await app.inject({ url: '/gateway/mcp', headers: { host: 'evil.example' } })).statusCode, 403);
+    assert.equal((await app.inject({ url: '/gateway/mcp', headers: deployedHeaders })).statusCode, 405);
+    for (const invalid of ['https://user:secret@api.internal', 'http://api.internal/?token=secret', 'file:///etc/passwd']) {
+      binding = invalid;
+      assert.equal((await app.inject({ url: '/gateway/health' })).statusCode, 503);
+    }
+    assert.equal(urls.length, 3);
+  } finally { await app.close(); }
+});
+
 test('gateway forwards credentials only to trusted API and returns actual RPC result', async () => {
   let received: { url: string; options?: RequestInit } | undefined;
   const app = buildGateway({ apiUrl: 'http://127.0.0.1:8000', fetcher: async (url, options) => {
